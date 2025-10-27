@@ -2,40 +2,55 @@
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.16)
-project(declarative-camera LANGUAGES CXX)
+project(file_transfer_ovimage LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
-if(NOT DEFINED INSTALL_EXAMPLESDIR)
-    set(INSTALL_EXAMPLESDIR "examples")
-endif()
-
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/declarative-camera")
-
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
 
-qt_add_executable(declarative-camera
+qt_add_executable(file_transfer_ovimage
     qmlcamera.cpp
 )
 
-set_target_properties(declarative-camera PROPERTIES
+set_target_properties(file_transfer_ovimage PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
-qt_add_ios_ffmpeg_libraries(declarative-camera)
+qt_add_ios_ffmpeg_libraries(file_transfer_ovimage)
 
-target_link_libraries(declarative-camera PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Multimedia
-    Qt::Qml
-    Qt::Quick
+set(OPENCV_PLAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/opencv_player")
+file(GLOB_RECURSE OPENCV_PLAYER_QML_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${OPENCV_PLAYER_DIR}/*.qml")
+file(GLOB_RECURSE OPENCV_PLAYER_SRC_FILES "${OPENCV_PLAYER_DIR}/*.cpp")
+file(GLOB_RECURSE OPENCV_PLAYER_HEADER_FILES "${OPENCV_PLAYER_DIR}/*.h")
+
+qt_policy(SET QTP0001 NEW)
+qt_policy(SET QTP0004 NEW)
+
+qt_add_qml_module(opencv_player
+    URI opencv_player
+    VERSION 1.0
+    OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/qml/opencv_player"
+    QML_FILES
+        ${OPENCV_PLAYER_QML_FILES}
+    SOURCES
+        ${OPENCV_PLAYER_SRC_FILES}
+        ${OPENCV_PLAYER_HEADER_FILES}
+)
+
+target_link_libraries(file_transfer_ovimage
+    PUBLIC
+        Qt::Core
+        Qt::Gui
+        Qt::Multimedia
+        Qt::Qml
+        Qt::Quick
+        opencv_player
 )
 
 # Resources:
-set(declarative-camera_resource_files
+set(file_transfer_ovimage_resource_files
     "CameraButton.qml"
     "CameraListButton.qml"
     "CameraListPopup.qml"
@@ -63,15 +78,15 @@ set(declarative-camera_resource_files
     "images/toolbutton.sci"
 )
 
-qt_add_resources(declarative-camera "declarative-camera"
+qt_add_resources(file_transfer_ovimage "file_transfer_ovimage"
     PREFIX
         "/"
     FILES
-        ${declarative-camera_resource_files}
+        ${file_transfer_ovimage_resource_files}
 )
 
-install(TARGETS declarative-camera
-    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
-    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
-    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
-)
+# install(TARGETS file_transfer_ovimage
+#     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
+#     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
+#     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
+# )

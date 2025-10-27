@@ -22,14 +22,22 @@ Item {
                 play();
         }
 
-        videoOutput: output
+        videoOutput: videoOut
         audioOutput: AudioOutput {
         }
     }
 
     VideoOutput {
-        id: output
-        anchors.fill : parent
+        id: videoOut
+        anchors.fill: parent
+        onVideoSinkChanged: {
+            console.log("Video sink changed");
+        }
+    }
+
+    function processFrame(frame) {
+        // Gọi sang C++ để xử lý
+        console.log("Received frame");
     }
 
     MouseArea {
