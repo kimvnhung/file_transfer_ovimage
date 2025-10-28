@@ -23,6 +23,32 @@ find_package(Qt6 REQUIRED COMPONENTS
     Qml 
     Quick
 )
+
+# OpenCV Configuration
+if(ANDROID)
+    # For Android builds, you need to set OpenCV_DIR to the Android SDK path
+    # Download OpenCV Android SDK from https://opencv.org/releases/
+    # Extract to a location and set the path below
+    if(NOT DEFINED OpenCV_DIR)
+        set(OpenCV_DIR "$ENV{HOME}/Android/OpenCV-android-sdk/sdk/native/jni" CACHE PATH "OpenCV Android SDK directory")
+    endif()
+    
+    # Set OpenCV Android ABI
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+        set(OpenCV_DIR "${OpenCV_DIR}/abi-arm64-v8a")
+    elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+        set(OpenCV_DIR "${OpenCV_DIR}/abi-armeabi-v7a")
+    elseif(ANDROID_ABI STREQUAL "x86")
+        set(OpenCV_DIR "${OpenCV_DIR}/abi-x86")
+    elseif(ANDROID_ABI STREQUAL "x86_64")
+        set(OpenCV_DIR "${OpenCV_DIR}/abi-x86_64")
+    endif()
+    
+    message(STATUS "Android build detected")
+    message(STATUS "OpenCV_DIR: ${OpenCV_DIR}")
+    message(STATUS "ANDROID_ABI: ${ANDROID_ABI}")
+endif()
+
 find_package(OpenCV REQUIRED)
 
 # ============================================================================
