@@ -7,6 +7,7 @@ project(file_transfer_ovimage LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+find_package(OpenCV REQUIRED)
 
 qt_add_executable(file_transfer_ovimage
     qmlcamera.cpp
@@ -48,6 +49,10 @@ target_link_libraries(file_transfer_ovimage
         Qt::Quick
         opencv_player
 )
+
+# Link OpenCV to the opencv_player module
+target_link_libraries(opencv_player PRIVATE ${OpenCV_LIBS})
+target_include_directories(opencv_player PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Resources:
 set(file_transfer_ovimage_resource_files
