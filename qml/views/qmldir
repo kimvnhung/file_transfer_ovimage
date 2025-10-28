@@ -1,0 +1,7 @@
+module app.views
+
+MainView 1.0 MainView.qml
+PermissionDenied 1.0 PermissionDenied.qml
+PhotoPreview 1.0 PhotoPreview.qml
+VideoPreview 1.0 VideoPreview.qml
+HomePage 1.0 HomePage.qml

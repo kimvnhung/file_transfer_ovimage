@@ -1,0 +1,5 @@
+module app.components
+
+CameraButton 1.0 CameraButton.qml
+CameraListButton 1.0 CameraListButton.qml
+CameraPropertyButton 1.0 CameraPropertyButton.qml

@@ -27,12 +27,12 @@ int main(int argc, char *argv[])
     QCameraPermission cameraPermission;
     qApp->requestPermission(cameraPermission, [&setupView](const QPermission &permission) {
         if (permission.status() == Qt::PermissionStatus::Denied)
-            setupView(QUrl("qrc:///permission-denied.qml"));
+            setupView(QUrl("qrc:/qml/views/PermissionDenied.qml"));
         else
-            setupView(QUrl("qrc:///declarative-camera.qml"));
+            setupView(QUrl("qrc:/qml/views/MainView.qml"));
     });
 #else
-    setupView();
+    setupView(QUrl("qrc:/qml/views/MainView.qml"));
 #endif
 
     return app.exec();

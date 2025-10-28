@@ -41,27 +41,27 @@ FocusScope {
                 value: Camera.WhiteBalanceAuto
                 model: ListModel {
                     ListElement {
-                        icon: "images/camera_auto_mode.png"
+                        icon: "qrc:/resources/images/camera_auto_mode.png"
                         value: Camera.WhiteBalanceAuto
                         text: "Auto"
                     }
                     ListElement {
-                        icon: "images/camera_white_balance_sunny.png"
+                        icon: "qrc:/resources/images/camera_white_balance_sunny.png"
                         value: Camera.WhiteBalanceSunlight
                         text: "Sunlight"
                     }
                     ListElement {
-                        icon: "images/camera_white_balance_cloudy.png"
+                        icon: "qrc:/resources/images/camera_white_balance_cloudy.png"
                         value: Camera.WhiteBalanceCloudy
                         text: "Cloudy"
                     }
                     ListElement {
-                        icon: "images/camera_white_balance_incandescent.png"
+                        icon: "qrc:/resources/images/camera_white_balance_incandescent.png"
                         value: Camera.WhiteBalanceTungsten
                         text: "Tungsten"
                     }
                     ListElement {
-                        icon: "images/camera_white_balance_flourescent.png"
+                        icon: "qrc:/resources/images/camera_white_balance_flourescent.png"
                         value: Camera.WhiteBalanceFluorescent
                         text: "Fluorescent"
                     }

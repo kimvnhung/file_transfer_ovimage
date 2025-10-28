@@ -1,0 +1,5 @@
+module app.dialogs
+
+Popup 1.0 Popup.qml
+CameraListPopup 1.0 CameraListPopup.qml
+CameraPropertyPopup 1.0 CameraPropertyPopup.qml

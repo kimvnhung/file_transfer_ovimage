@@ -2,39 +2,37 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
-import QtMultimedia
 
 Item {
-    id: cameraListButton
+    id: propertyButton
     property alias value : popup.currentValue
     property alias model : popup.model
 
     width : 144
     height: 70
-    visible: model.length > 0
 
     BorderImage {
         id: buttonImage
-        source: "images/toolbutton.sci"
-        width: cameraListButton.width; height: cameraListButton.height
+        source: "qrc:/resources/images/toolbutton.sci"
+        width: propertyButton.width; height: propertyButton.height
     }
 
     CameraButton {
         anchors.fill: parent
-        text: popup.currentItem !== null ? popup.currentItem.description : ""
+        Image {
+            anchors.centerIn: parent
+            source: popup.currentItem.icon
+        }
 
         onClicked: popup.toggle()
     }
 
-    CameraListPopup {
+    CameraPropertyPopup {
         id: popup
         anchors.rightMargin: 16
         visible: opacity > 0
-        model: mediaDevices.videoInputs
 
-        MediaDevices {
-            id: mediaDevices
-        }
+        currentValue: propertyButton.value
 
         onSelected: popup.toggle()
     }
@@ -45,8 +43,8 @@ Item {
             AnchorChanges {
                 target: popup
                 // qmllint disable incompatible-type
-                anchors.bottom: cameraListButton.top
-                anchors.left: cameraListButton.left
+                anchors.bottom: propertyButton.top
+                anchors.left: propertyButton.left
                 // qmllint enable incompatible-type
             }
         },
@@ -55,8 +53,8 @@ Item {
             AnchorChanges {
                 target: popup
                 // qmllint disable incompatible-type
-                anchors.top: cameraListButton.top
-                anchors.right: cameraListButton.left
+                anchors.verticalCenter: propertyButton.top
+                anchors.right: propertyButton.left
                 // qmllint enable incompatible-type
             }
         },
@@ -65,8 +63,8 @@ Item {
             AnchorChanges {
                 target: popup
                 // qmllint disable incompatible-type
-                anchors.top: cameraListButton.top
-                anchors.right: cameraListButton.left
+                anchors.top: propertyButton.top
+                anchors.right: propertyButton.left
                 // qmllint enable incompatible-type
             }
         }

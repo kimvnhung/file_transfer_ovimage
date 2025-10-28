@@ -1,0 +1,6 @@
+module app.controls
+
+PhotoCaptureControls 1.0 PhotoCaptureControls.qml
+VideoCaptureControls 1.0 VideoCaptureControls.qml
+ZoomControl 1.0 ZoomControl.qml
+FlashControl 1.0 FlashControl.qml

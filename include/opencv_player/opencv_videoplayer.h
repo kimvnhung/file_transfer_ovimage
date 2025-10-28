@@ -6,7 +6,7 @@
 #include <QSize>
 #include <QMutex>
 #include <opencv2/opencv.hpp>
-#include <opencv_player_viewport.h>
+#include "opencv_player_viewport.h"
 
 class OpenCV_VideoPlayer : public QThread
 {

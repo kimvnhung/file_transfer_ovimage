@@ -1,29 +1,44 @@
 <RCC>
     <qresource prefix="/">
-        <file>PhotoPreview.qml</file>
-        <file>ZoomControl.qml</file>
-        <file>VideoCaptureControls.qml</file>
-        <file>VideoPreview.qml</file>
-        <file>PhotoCaptureControls.qml</file>
-        <file>declarative-camera.qml</file>
-        <file>Popup.qml</file>
-        <file>CameraPropertyPopup.qml</file>
-        <file>CameraPropertyButton.qml</file>
-        <file>CameraButton.qml</file>
-        <file>CameraListPopup.qml</file>
-        <file>CameraListButton.qml</file>
-        <file>FlashControl.qml</file>
-        <file>images/camera_auto_mode.png</file>
-        <file>images/camera_camera_setting.png</file>
-        <file>images/camera_flash_auto.png</file>
-        <file>images/camera_flash_fill.png</file>
-        <file>images/camera_flash_off.png</file>
-        <file>images/camera_flash_redeye.png</file>
-        <file>images/camera_white_balance_cloudy.png</file>
-        <file>images/camera_white_balance_flourescent.png</file>
-        <file>images/camera_white_balance_incandescent.png</file>
-        <file>images/camera_white_balance_sunny.png</file>
-        <file>images/toolbutton.png</file>
-        <file>images/toolbutton.sci</file>
+        <!-- QML Views -->
+        <file>qml/views/MainView.qml</file>
+        <file>qml/views/PermissionDenied.qml</file>
+        <file>qml/views/PhotoPreview.qml</file>
+        <file>qml/views/VideoPreview.qml</file>
+        <file>qml/views/HomePage.qml</file>
+        <file>qml/views/qmldir</file>
+        
+        <!-- QML Controls -->
+        <file>qml/controls/PhotoCaptureControls.qml</file>
+        <file>qml/controls/VideoCaptureControls.qml</file>
+        <file>qml/controls/ZoomControl.qml</file>
+        <file>qml/controls/FlashControl.qml</file>
+        <file>qml/controls/qmldir</file>
+        
+        <!-- QML Components -->
+        <file>qml/components/CameraButton.qml</file>
+        <file>qml/components/CameraListButton.qml</file>
+        <file>qml/components/CameraPropertyButton.qml</file>
+        <file>qml/components/qmldir</file>
+        
+        <!-- QML Dialogs -->
+        <file>qml/dialogs/Popup.qml</file>
+        <file>qml/dialogs/CameraListPopup.qml</file>
+        <file>qml/dialogs/CameraPropertyPopup.qml</file>
+        <file>qml/dialogs/qmldir</file>
+        
+        <!-- Image Resources -->
+        <file>resources/images/camera_auto_mode.png</file>
+        <file>resources/images/camera_camera_setting.png</file>
+        <file>resources/images/camera_flash_auto.png</file>
+        <file>resources/images/camera_flash_fill.png</file>
+        <file>resources/images/camera_flash_off.png</file>
+        <file>resources/images/camera_flash_redeye.png</file>
+        <file>resources/images/camera_white_balance_cloudy.png</file>
+        <file>resources/images/camera_white_balance_flourescent.png</file>
+        <file>resources/images/camera_white_balance_incandescent.png</file>
+        <file>resources/images/camera_white_balance_sunny.png</file>
+        <file>resources/images/toolbutton.png</file>
+        <file>resources/images/toolbutton.sci</file>
     </qresource>
 </RCC>

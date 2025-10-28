@@ -1,5 +1,5 @@
 #include "opencv_player_viewport.h"
-#include <opencv_videoplayer.h>
+#include "opencv_videoplayer.h"
 #include <QPainter>
 
 OpenCV_Player_ViewPort::OpenCV_Player_ViewPort(QQuickItem *parent) : QQuickPaintedItem(parent) { }
