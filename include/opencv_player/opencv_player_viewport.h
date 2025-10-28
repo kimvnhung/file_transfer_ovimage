@@ -2,11 +2,13 @@
 #define OPENCV_PLAYER_VIEWPORT_H
 
 #include <QQuickPaintedItem>
+#include <QQmlEngine>
 
 class OpenCV_VideoPlayer;
 class OpenCV_Player_ViewPort : public QQuickPaintedItem
 {
     Q_OBJECT
+    QML_ELEMENT
 public:
     explicit OpenCV_Player_ViewPort(QQuickItem *parent = nullptr);
     void paint(QPainter *painter) override;

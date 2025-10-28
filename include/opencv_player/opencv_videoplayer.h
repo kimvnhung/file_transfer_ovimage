@@ -5,12 +5,14 @@
 #include <QUrl>
 #include <QSize>
 #include <QMutex>
+#include <QQmlEngine>
 #include <opencv2/opencv.hpp>
 #include "opencv_player_viewport.h"
 
 class OpenCV_VideoPlayer : public QThread
 {
     Q_OBJECT
+    QML_ELEMENT
     Q_PROPERTY(OpenCV_Player_ViewPort* viewPort READ viewPort WRITE setViewPort NOTIFY viewPortChanged)
     Q_PROPERTY(QUrl videoUrl READ videoUrl WRITE setVideoUrl NOTIFY videoUrlChanged)
     Q_PROPERTY(int videoFrameCount READ videoFrameCount NOTIFY videoFrameCountChanged)

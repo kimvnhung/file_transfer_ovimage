@@ -4,8 +4,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import app.OpenCV_Player_ViewPort 1.0
-import app.OpenCV_VideoPlayer 1.0
+import opencv_player
 
 Item {
     id: videoPreview
