@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtMultimedia
+import "../controls"
 
 Rectangle {
     id : cameraUI
