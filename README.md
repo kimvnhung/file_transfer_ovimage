@@ -200,6 +200,9 @@ This project includes an **advanced self-healing CI/CD system** that automatical
 - **🚀 GitHub Actions** - Automated cloud builds and testing
 - **🐳 Docker Support** - Reproducible containerized builds
 - **📱 Runtime Testing** - Deploy to device, analyze logcat, auto-fix errors
+- **📊 Web Dashboard** - Visualize test results and logs in browser
+- **🐳 Docker Support** - Reproducible containerized builds
+- **📱 Runtime Testing** - Deploy to device, analyze logcat, auto-fix errors
 
 **Quick start:**
 ```bash
@@ -208,6 +211,9 @@ This project includes an **advanced self-healing CI/CD system** that automatical
 
 # Runtime testing on connected device
 ./test.sh
+
+# View test results dashboard
+./dashboard.sh
 
 # Use CI helper for manual control
 ./ci.sh build
@@ -218,6 +224,7 @@ This project includes an **advanced self-healing CI/CD system** that automatical
 **Documentation:**
 - **[Self-Healing CI Guide](docs/guides/SELF_HEALING_CI.md)** - Complete build-time self-healing documentation
 - **[Runtime Self-Healing](docs/guides/RUNTIME_SELF_HEALING.md)** - Device testing and runtime error fixing
+- **[Test Results Dashboard](docs/guides/DASHBOARD.md)** - Web UI for visualizing test logs and results
 - **[CI/CD Guide](docs/guides/CI_CD_GUIDE.md)** - Manual CI/CD setup and usage
 - **[CI Quick Start](docs/reference/CI_QUICK_START.md)** - Quick reference
 - **[Self-Healing Quick Ref](docs/reference/SELF_HEALING_QUICK_REF.md)** - Command cheat sheet

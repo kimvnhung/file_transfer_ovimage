@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results Dashboard - File Transfer Over Image</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Test Results Dashboard</h1>
+            <p class="subtitle">File Transfer Over Image - Android Build & Runtime Tests</p>
+        </header>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="total-builds">-</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value" id="passed-builds">-</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="stat-value" id="failed-builds">-</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="success-rate">-%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All Tests</button>
+            <button class="filter-btn" data-filter="runtime">Runtime Tests</button>
+            <button class="filter-btn" data-filter="build">Build Tests</button>
+            <button class="filter-btn" data-filter="success">Passed Only</button>
+            <button class="filter-btn" data-filter="failed">Failed Only</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search" placeholder="🔍 Search builds, errors, logs...">
+        </div>
+
+        <div id="builds-container" class="builds-container">
+            <div class="loading">Loading test results...</div>
+        </div>
+
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Generated: <span id="generated-time">-</span></p>
+        <p>Auto-refresh: <span id="refresh-countdown">30</span>s</p>
+    </footer>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
