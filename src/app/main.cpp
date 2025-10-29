@@ -4,6 +4,8 @@
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QQuickView>
+#include <QQmlContext>
+#include "tesseractocr.h"
 
 #if QT_CONFIG(permissions)
   #include <QPermission>
@@ -12,8 +14,15 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    
+    // Create TesseractOCR instance
+    TesseractOCR tesseractOCR;
+    
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);
+    
+    // Expose TesseractOCR to QML
+    view.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
 
     auto setupView = [&view](const QUrl &viewSource) {
         // Qt.quit() called in embedded .qml by default only emits

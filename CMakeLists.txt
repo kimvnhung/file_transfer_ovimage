@@ -24,6 +24,17 @@ find_package(Qt6 REQUIRED COMPONENTS
     Quick
 )
 
+# Tesseract OCR Configuration (Desktop only)
+if(NOT ANDROID)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(TESSERACT REQUIRED tesseract)
+    pkg_check_modules(LEPTONICA REQUIRED lept)
+    add_definitions(-DUSE_TESSERACT)
+    message(STATUS "Tesseract OCR enabled for desktop build")
+else()
+    message(STATUS "Tesseract OCR disabled for Android build")
+endif()
+
 # OpenCV Configuration
 if(ANDROID)
     # For Android builds, you need to set OpenCV_DIR to the Android SDK path
@@ -60,11 +71,23 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/opencv_player
 )
 
+if(NOT ANDROID)
+    include_directories(
+        ${TESSERACT_INCLUDE_DIRS}
+        ${LEPTONICA_INCLUDE_DIRS}
+    )
+endif()
+
 # ============================================================================
 # Source Files
 # ============================================================================
 set(APP_SOURCES
     src/app/main.cpp
+    src/app/tesseractocr.cpp
+)
+
+set(APP_HEADERS
+    include/app/tesseractocr.h
 )
 
 set(OPENCV_PLAYER_SOURCES
@@ -86,6 +109,7 @@ set(QML_VIEWS
     qml/views/PhotoPreview.qml
     qml/views/VideoPreview.qml
     qml/views/HomePage.qml
+    qml/views/OCRPage.qml
 )
 
 set(QML_CONTROLS
@@ -99,6 +123,7 @@ set(QML_COMPONENTS
     qml/components/CameraButton.qml
     qml/components/CameraListButton.qml
     qml/components/CameraPropertyButton.qml
+    qml/components/OCRCameraView.qml
 )
 
 set(QML_DIALOGS
@@ -130,6 +155,7 @@ set(RESOURCE_FILES
 # ============================================================================
 qt_add_executable(file_transfer_ovimage
     ${APP_SOURCES}
+    ${APP_HEADERS}
 )
 
 set_target_properties(file_transfer_ovimage PROPERTIES
@@ -198,6 +224,14 @@ target_link_libraries(file_transfer_ovimage
         Qt::Quick
         opencv_player
 )
+
+if(NOT ANDROID)
+    target_link_libraries(file_transfer_ovimage
+        PRIVATE
+            ${TESSERACT_LIBRARIES}
+            ${LEPTONICA_LIBRARIES}
+    )
+endif()
 
 # ============================================================================
 # Installation (Optional)
