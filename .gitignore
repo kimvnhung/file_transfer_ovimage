@@ -53,6 +53,19 @@ ci-reports/
 build/ci-android/
 .last_android_ip
 
+# Test logs and artifacts
+fix-log-*.txt
+*-fix-*.txt
+cmake-log-*.txt
+build-log-*.txt
+logcat-*.txt
+logcat-attempt-*.txt
+screenshot-*.png
+crash-*.txt
+install.log
+rebuild.log
+*.log
+
 # Docker volumes
 .docker/
 
