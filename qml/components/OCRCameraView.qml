@@ -126,11 +126,12 @@ Rectangle {
         
         function recognizeImage(image) {
             // This will be connected to the C++ TesseractOCR instance
-            if (typeof tesseractOCR !== 'undefined') {
+            if (typeof tesseractOCR !== 'undefined' && tesseractOCR !== null) {
                 var text = tesseractOCR.recognizeText(image)
                 handleRecognizedText(text)
             } else {
-                console.error("TesseractOCR not available")
+                console.error("TesseractOCR not available - OCR is disabled on Android")
+                captureError("OCR not available on this platform")
                 isCapturing = false
             }
         }
@@ -147,6 +148,11 @@ Rectangle {
     // Public methods
     function captureAndRecognize() {
         if (!isCapturing) {
+            // Check if OCR is available before capturing
+            if (typeof tesseractOCR === 'undefined' || tesseractOCR === null) {
+                captureError("OCR not available on this platform (Desktop only)")
+                return
+            }
             imageCapture.captureToFile("")
         }
     }
