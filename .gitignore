@@ -48,6 +48,14 @@ CMakeLists.txt.user*
 # QtCreator 4.8< compilation database
 compile_commands.json
 
+# CI/CD artifacts
+ci-reports/
+build/ci-android/
+.last_android_ip
+
+# Docker volumes
+.docker/
+
 # QtCreator local machine specific files for imported projects
 *creator.user*
 

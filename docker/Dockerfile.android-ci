@@ -1,0 +1,76 @@
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/27.2.12479018
+ENV QT_VERSION=6.10.0
+ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    wget \
+    unzip \
+    openjdk-17-jdk \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libpulse-dev \
+    libxkbcommon-x11-0 \
+    libxcb-icccm4 \
+    libxcb-image0 \
+    libxcb-keysyms1 \
+    libxcb-randr0 \
+    libxcb-render-util0 \
+    libxcb-xinerama0 \
+    libxcb-xfixes0 \
+    libxcb-shape0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Android SDK Command Line Tools
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    cd ${ANDROID_HOME}/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip && \
+    unzip -q commandlinetools-linux-9477386_latest.zip && \
+    rm commandlinetools-linux-9477386_latest.zip && \
+    mv cmdline-tools latest
+
+# Accept licenses and install Android SDK components
+RUN yes | sdkmanager --licenses && \
+    sdkmanager "platform-tools" \
+               "platforms;android-23" \
+               "platforms;android-33" \
+               "build-tools;34.0.0" \
+               "ndk;27.2.12479018" \
+               "system-images;android-29;google_apis;x86_64"
+
+# Install Qt for Android (this would normally be done via aqt or manual download)
+# For CI, you might want to cache this or use a pre-built image
+RUN mkdir -p /opt/Qt && \
+    cd /opt/Qt && \
+    wget -q https://download.qt.io/archive/qt/6.10/6.10.0/qt-everywhere-src-6.10.0.tar.xz && \
+    echo "Note: Full Qt installation is large. Consider using pre-built packages or caching."
+
+# Download OpenCV Android SDK
+RUN mkdir -p /opt/opencv && \
+    cd /opt/opencv && \
+    wget -q https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-android-sdk.zip && \
+    unzip -q opencv-4.10.0-android-sdk.zip && \
+    rm opencv-4.10.0-android-sdk.zip
+
+# Set working directory
+WORKDIR /workspace
+
+# Set environment variables for builds
+ENV OPENCV_ANDROID_SDK=/opt/opencv/OpenCV-android-sdk
+ENV Qt6_DIR=/opt/Qt/${QT_VERSION}/android_arm64_v8a/lib/cmake/Qt6
+
+# Create build script
+COPY build-android.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/build-android.sh
+
+# Entry point
+CMD ["/bin/bash"]
