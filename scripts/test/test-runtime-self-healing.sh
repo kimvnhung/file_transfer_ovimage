@@ -67,7 +67,7 @@ check_device() {
         echo ""
         echo "Please connect a device via:"
         echo "  1. USB cable, or"
-        echo "  2. WiFi: ./connect_android_wifi.sh"
+        echo "  2. WiFi: ./scripts/setup/connect_android_wifi.sh"
         return 1
     fi
     
