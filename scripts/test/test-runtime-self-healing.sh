@@ -131,6 +131,35 @@ launch_app() {
     fi
 }
 
+# Capture device screen
+capture_screen() {
+    local attempt=$1
+    local screenshot_file="$LOGS_DIR/screenshot-attempt-$attempt.png"
+    
+    log "Capturing device screen..."
+    
+    # Capture screenshot to device
+    adb shell screencap -p /sdcard/screenshot.png > /dev/null 2>&1
+    
+    if [ $? -eq 0 ]; then
+        # Pull screenshot from device
+        adb pull /sdcard/screenshot.png "$screenshot_file" > /dev/null 2>&1
+        
+        if [ $? -eq 0 ]; then
+            # Clean up device
+            adb shell rm /sdcard/screenshot.png > /dev/null 2>&1
+            log_success "Screenshot saved: $(basename "$screenshot_file")"
+            return 0
+        else
+            log_warning "Failed to pull screenshot from device"
+            return 1
+        fi
+    else
+        log_warning "Failed to capture screenshot"
+        return 1
+    fi
+}
+
 # Monitor logcat for errors
 monitor_logcat() {
     local attempt=$1
@@ -152,6 +181,10 @@ monitor_logcat() {
     wait $LOGCAT_PID 2>/dev/null
     
     log_success "Logcat captured to: $(basename "$logcat_file")"
+    
+    # Capture screenshot after monitoring
+    capture_screen "$attempt"
+    
     echo "$logcat_file"
 }
 
@@ -378,10 +411,16 @@ main() {
         if ! launch_app; then
             log_error "Launch failed on attempt $ATTEMPT"
             
+            # Capture screen on launch failure
+            capture_screen "$ATTEMPT-launch-failed"
+            
             # Try to get crash log
             adb logcat -d | grep -A 20 "FATAL EXCEPTION" > "$LOGS_DIR/crash-$ATTEMPT.txt"
             break
         fi
+        
+        # Capture initial screen after successful launch
+        capture_screen "$ATTEMPT-launched"
         
         # Monitor logcat
         LOGCAT_FILE=$(monitor_logcat $ATTEMPT)
@@ -444,6 +483,11 @@ main() {
         echo "  • Final status: No errors detected"
         echo "  • Application: Running cleanly on device"
         echo ""
+        echo "Artifacts saved:"
+        echo "  • Logcat logs: $LOGS_DIR/logcat-attempt-*.txt"
+        echo "  • Screenshots: $LOGS_DIR/screenshot-*.png"
+        echo "  • Fix history: $LOGS_DIR/runtime-fix-*.txt"
+        echo ""
         log_success "The app is ready for production!"
         echo ""
         exit 0
@@ -455,8 +499,9 @@ main() {
         echo "  • Final status: Errors still present"
         echo ""
         echo "Review logs at: $LOGS_DIR"
-        echo "  • logcat-attempt-*.txt"
-        echo "  • runtime-fix-*.txt"
+        echo "  • Logcat logs: logcat-attempt-*.txt"
+        echo "  • Screenshots: screenshot-*.png"
+        echo "  • Fix history: runtime-fix-*.txt"
         echo ""
         log_warning "Manual intervention required"
         echo ""

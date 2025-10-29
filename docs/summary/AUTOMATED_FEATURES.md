@@ -135,23 +135,35 @@ Applies fixes for detected errors:
    - Flags for manual review when needed
 
 #### ✅ Self-Healing Loop (5 Cycles)
-- **Cycle 1**: Deploy → Test → Analyze → Fix
-- **Cycle 2**: Rebuild → Deploy → Test → Analyze → Fix
-- **Cycle 3**: Rebuild → Deploy → Test → Analyze → Fix
-- **Cycle 4**: Rebuild → Deploy → Test → Analyze → Fix
-- **Cycle 5**: Rebuild → Deploy → Test → Success!
+- **Cycle 1**: Deploy → Launch → **Capture Screen** → Test → Analyze → Fix
+- **Cycle 2**: Rebuild → Deploy → Launch → **Capture Screen** → Test → Analyze → Fix
+- **Cycle 3**: Rebuild → Deploy → Launch → **Capture Screen** → Test → Analyze → Fix
+- **Cycle 4**: Rebuild → Deploy → Launch → **Capture Screen** → Test → Analyze → Fix
+- **Cycle 5**: Rebuild → Deploy → Launch → **Capture Screen** → Test → Success!
 
 Each cycle:
 1. Tests the current APK
-2. Analyzes logcat for errors
-3. Applies automatic fixes
-4. Rebuilds the app
-5. Repeats until error-free or max attempts reached
+2. **Captures device screen at launch**
+3. **Captures device screen after monitoring**
+4. Analyzes logcat for errors
+5. Applies automatic fixes
+6. Rebuilds the app
+7. Repeats until error-free or max attempts reached
+
+#### ✅ Screen Capture System
+Automatically captures device screenshots:
+- 📸 **On app launch** → screenshot-attempt-N-launched.png
+- 📸 **After test monitoring** → screenshot-attempt-N.png
+- 📸 **On launch failure** → screenshot-attempt-N-launch-failed.png
+- 💾 All screenshots saved to: `ci-reports/runtime-test/`
+- 🔍 Visual record of app state during testing
 
 #### ✅ Comprehensive Logging
-- Saves logcat output: `ci-reports/runtime-test/logcat-N.log`
+- Saves logcat output: `ci-reports/runtime-test/logcat-attempt-N.txt`
+- Saves screenshots: `ci-reports/runtime-test/screenshot-attempt-N*.png`
 - Tracks applied fixes: `ci-reports/runtime-test/runtime-fix-TIMESTAMP.txt`
 - Records rebuild logs: `ci-reports/runtime-test/rebuild.log`
+- Captures crash logs: `ci-reports/runtime-test/crash-N.txt` (on fatal errors)
 - Final report with all cycles and outcomes
 
 ---

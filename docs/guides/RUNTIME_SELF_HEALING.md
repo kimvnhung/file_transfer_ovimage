@@ -110,8 +110,20 @@ Fix: Analyze stack trace and apply appropriate fixes
             │
             ↓
 ┌─────────────────────────┐
+│   📸 Capture Screen     │
+│   (Launch State)        │
+└───────────┬─────────────┘
+            │
+            ↓
+┌─────────────────────────┐
 │   Monitor Logcat        │
 │   (15 seconds)          │
+└───────────┬─────────────┘
+            │
+            ↓
+┌─────────────────────────┐
+│   📸 Capture Screen     │
+│   (After Monitoring)    │
 └───────────┬─────────────┘
             │
             ↓
@@ -144,11 +156,47 @@ Fix: Analyze stack trace and apply appropriate fixes
               └──────────────┘
 ```
 
+## 📸 Screen Capture
+
+The system automatically captures device screenshots during testing:
+
+### Capture Points
+1. **After successful launch** → `screenshot-attempt-N-launched.png`
+   - Visual confirmation of app startup
+   - Captures initial UI state
+   
+2. **After monitoring period** → `screenshot-attempt-N.png`
+   - Shows app state after running for 15 seconds
+   - Captures any runtime UI changes or errors
+   
+3. **On launch failure** → `screenshot-attempt-N-launch-failed.png`
+   - Helps diagnose startup crashes
+   - Shows error dialogs or blank screens
+
+### Screenshot Features
+- **Automatic capture**: No manual intervention needed
+- **PNG format**: High quality, lossless compression
+- **Timestamped**: Linked to specific test cycle
+- **Location**: `ci-reports/runtime-test/`
+- **ADB-based**: Uses `screencap` command
+- **Auto-cleanup**: Removes temp files from device
+
+### Usage
+Screenshots are captured automatically during each test cycle. Review them to:
+- ✅ Verify UI renders correctly
+- ✅ Check for visual errors or glitches
+- ✅ Diagnose crash screens
+- ✅ Compare before/after fix states
+- ✅ Document test results
+
 ## 📝 Log Output
 
-Logs are saved to `ci-reports/runtime-test/`:
+Logs and artifacts are saved to `ci-reports/runtime-test/`:
 
 - `logcat-attempt-N.txt` - Full logcat for each cycle
+- `screenshot-attempt-N-launched.png` - Screen at app launch
+- `screenshot-attempt-N.png` - Screen after monitoring
+- `screenshot-attempt-N-launch-failed.png` - Launch failure screen (if any)
 - `runtime-fix-TIMESTAMP.txt` - Fix actions log
 - `install.log` - APK installation log
 - `rebuild.log` - Rebuild output
@@ -186,9 +234,13 @@ $ ./test-runtime-self-healing.sh
 
 [SUCCESS] APK installed
 [SUCCESS] Application launched
+[RUNTIME-TEST] Capturing device screen...
+[SUCCESS] Screenshot saved: screenshot-attempt-1-launched.png
 [RUNTIME-TEST] Monitoring logcat for 15 seconds...
   Progress: [15/15 seconds]
 [SUCCESS] Logcat captured
+[RUNTIME-TEST] Capturing device screen...
+[SUCCESS] Screenshot saved: screenshot-attempt-1.png
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RUNTIME ERRORS DETECTED:
