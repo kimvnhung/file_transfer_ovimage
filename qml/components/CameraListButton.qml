@@ -3,7 +3,7 @@
 
 import QtQuick
 import QtMultimedia
-import "../dialogs"
+import app.dialogs
 
 Item {
     id: cameraListButton

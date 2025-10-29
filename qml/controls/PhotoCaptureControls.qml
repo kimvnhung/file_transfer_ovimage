@@ -4,8 +4,8 @@
 import QtQuick
 import QtMultimedia
 import QtQuick.Layouts
-import "../components"
-import "../dialogs"
+import app.components
+import app.dialogs
 
 FocusScope {
     id : captureControls
