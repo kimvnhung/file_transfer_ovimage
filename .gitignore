@@ -66,6 +66,13 @@ install.log
 rebuild.log
 *.log
 
+# Build products
+*.apk
+*.aab
+*.aar
+*.so
+*.jar
+
 # Docker volumes
 .docker/
 
