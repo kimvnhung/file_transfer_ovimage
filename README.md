@@ -3,6 +3,8 @@
 [![Qt Version](https://img.shields.io/badge/Qt-6.0%2B-green.svg)](https://www.qt.io/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.0%2B-blue.svg)](https://opencv.org/)
 [![License](https://img.shields.io/badge/license-BSD--3-blue.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-self--healing-brightgreen.svg)](SELF_HEALING_CI.md)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-automated-blue.svg)](CI_CD_GUIDE.md)
 
 A research project exploring innovative file transfer methods between PC and mobile devices using visual communication - transferring data through images/video without requiring wireless, internet, or cable connections.
 
@@ -116,6 +118,26 @@ cmake --build .
 ./file_transfer_ovimage
 ```
 
+### Android
+
+See comprehensive guides:
+- **[Quick Setup](QUICK_SETUP.md)** - Fast setup with Qt Creator
+- **[Android Build Guide](ANDROID_BUILD_GUIDE.md)** - Complete manual build instructions
+- **[OpenCV Android Setup](OPENCV_ANDROID_SETUP_COMPLETE.md)** - OpenCV configuration
+- **[WSL Device Setup](WSL_ANDROID_DEVICE_SETUP.md)** - Connect devices in WSL2
+
+**Quick Android build:**
+```bash
+# Setup OpenCV Android SDK
+./setup_opencv_android.sh
+
+# Build with self-healing system (auto-fixes errors)
+./self-heal-build.sh
+
+# Or use CI helper
+./ci-helper.sh build
+```
+
 ### Windows
 
 ```bash
@@ -138,6 +160,33 @@ cmake --build . --config Release
 # Run
 Release\file_transfer_ovimage.exe
 ```
+
+## 🤖 CI/CD & Self-Healing System
+
+This project includes an **advanced self-healing CI/CD system** that automatically detects and fixes build errors:
+
+- **🔄 Automatic Error Detection** - Analyzes build logs for common issues
+- **🔧 Intelligent Auto-Fix** - Applies fixes for QML imports, missing includes, OpenCV issues
+- **♻️ Multi-Attempt Builds** - Retries up to 3 times with fixes
+- **📊 Detailed Reports** - Comprehensive logs and artifacts
+- **🚀 GitHub Actions** - Automated cloud builds and testing
+- **🐳 Docker Support** - Reproducible containerized builds
+
+**Quick start:**
+```bash
+# Local self-healing build
+./self-heal-build.sh
+
+# Use CI helper for manual control
+./ci-helper.sh build
+./ci-helper.sh test
+```
+
+**Documentation:**
+- **[Self-Healing CI Guide](SELF_HEALING_CI.md)** - Complete self-healing system documentation
+- **[CI/CD Guide](CI_CD_GUIDE.md)** - Manual CI/CD setup and usage
+- **[CI Quick Start](CI_QUICK_START.md)** - Quick reference
+
 
 ## 📱 Usage
 
