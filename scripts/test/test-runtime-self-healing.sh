@@ -197,11 +197,28 @@ analyze_runtime_errors() {
     log "Analyzing logcat for QML/Qt errors..."
     
     if [ ! -f "$logcat_file" ]; then
-        log_error "Logcat file not found"
+        log_error "Logcat file not found: $logcat_file"
         return 1
     fi
     
-    # Extract errors
+    # Check for different types of errors first
+    if grep -qi "is not a type\|is not installed\|module.*is not installed" "$logcat_file"; then
+        errors_found=true
+    fi
+    
+    if grep -qi "Cannot assign to non-existent property\|ReferenceError" "$logcat_file"; then
+        errors_found=true
+    fi
+    
+    if grep -qi "QObject::connect\|QQmlEngine\|failed to create" "$logcat_file"; then
+        errors_found=true
+    fi
+    
+    if grep -qi "FATAL EXCEPTION\|AndroidRuntime" "$logcat_file"; then
+        errors_found=true
+    fi
+    
+    # Now display the errors
     {
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "RUNTIME ERRORS DETECTED:"
@@ -212,7 +229,6 @@ analyze_runtime_errors() {
             echo ""
             echo "QML Type/Import Errors:"
             grep -i "is not a type\|is not installed\|module.*is not installed" "$logcat_file" | head -10
-            errors_found=true
         fi
         
         # QML property errors
@@ -220,7 +236,6 @@ analyze_runtime_errors() {
             echo ""
             echo "QML Property Errors:"
             grep -i "Cannot assign to non-existent property\|ReferenceError" "$logcat_file" | head -10
-            errors_found=true
         fi
         
         # Qt warnings
@@ -228,7 +243,6 @@ analyze_runtime_errors() {
             echo ""
             echo "Qt Runtime Warnings:"
             grep -i "QObject::connect\|QQmlEngine\|failed to create" "$logcat_file" | head -10
-            errors_found=true
         fi
         
         # Fatal errors
@@ -236,7 +250,6 @@ analyze_runtime_errors() {
             echo ""
             echo "Fatal Errors:"
             grep -A 10 "FATAL EXCEPTION\|AndroidRuntime" "$logcat_file" | head -20
-            errors_found=true
         fi
         
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
