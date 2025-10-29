@@ -3,7 +3,7 @@
 let testData = null;
 let currentFilter = 'all';
 let refreshInterval = null;
-let countdown = 30;
+let countdown = 15;
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -260,7 +260,7 @@ function startAutoRefresh() {
         updateCountdown();
         
         if (countdown <= 0) {
-            countdown = 30;
+            countdown = 15;
             loadTestData();
         }
     }, 1000);
@@ -276,7 +276,7 @@ function manualRefresh() {
     btn.classList.add('refreshing');
     btn.textContent = '🔄 Refreshing...';
     
-    countdown = 30; // Reset countdown
+    countdown = 15; // Reset countdown
     loadTestData().then(() => {
         btn.classList.remove('refreshing');
         btn.textContent = '🔄 Refresh';
