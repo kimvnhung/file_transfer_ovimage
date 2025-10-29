@@ -104,6 +104,7 @@ set(OPENCV_PLAYER_HEADERS
 # QML Files Organization
 # ============================================================================
 set(QML_VIEWS
+    qml/views/AppMain.qml
     qml/views/MainView.qml
     qml/views/PermissionDenied.qml
     qml/views/PhotoPreview.qml

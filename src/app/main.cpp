@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include <QGuiApplication>
-#include <QQmlEngine>
-#include <QQuickView>
+#include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "tesseractocr.h"
 
@@ -18,18 +17,16 @@ int main(int argc, char *argv[])
     // Create TesseractOCR instance
     TesseractOCR tesseractOCR;
     
-    QQuickView view;
-    view.setResizeMode(QQuickView::SizeRootObjectToView);
+    QQmlApplicationEngine engine;
     
     // Expose TesseractOCR to QML
-    view.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
+    engine.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
 
-    auto setupView = [&view](const QUrl &viewSource) {
+    auto setupView = [&engine](const QUrl &viewSource) {
         // Qt.quit() called in embedded .qml by default only emits
         // quit() signal, so do this (optionally use Qt.exit()).
-        QObject::connect(view.engine(), &QQmlEngine::quit, qApp, &QGuiApplication::quit);
-        view.setSource(viewSource);
-        view.show();
+        QObject::connect(&engine, &QQmlApplicationEngine::quit, qApp, &QGuiApplication::quit);
+        engine.load(viewSource);
     };
 
 #if QT_CONFIG(permissions)
@@ -38,10 +35,10 @@ int main(int argc, char *argv[])
         if (permission.status() == Qt::PermissionStatus::Denied)
             setupView(QUrl("qrc:/qml/views/PermissionDenied.qml"));
         else
-            setupView(QUrl("qrc:/qml/views/MainView.qml"));
+            setupView(QUrl("qrc:/qml/views/AppMain.qml"));
     });
 #else
-    setupView(QUrl("qrc:/qml/views/MainView.qml"));
+    setupView(QUrl("qrc:/qml/views/AppMain.qml"));
 #endif
 
     return app.exec();
