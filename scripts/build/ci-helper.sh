@@ -3,7 +3,7 @@
 
 set -e
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Configuration
@@ -48,12 +48,12 @@ EOF
 
 cmd_build() {
     echo "Building Android APK..."
-    bash "${PROJECT_ROOT}/ci/build-android.sh"
+    bash "${PROJECT_ROOT}/scripts/ci/build-android.sh"
 }
 
 cmd_test() {
     echo "Testing Android APK..."
-    bash "${PROJECT_ROOT}/ci/test-android.sh"
+    bash "${PROJECT_ROOT}/scripts/ci/test-android.sh"
 }
 
 cmd_clean() {
@@ -68,13 +68,13 @@ cmd_setup() {
     
     # Setup OpenCV
     if [ ! -d "${HOME}/Android/OpenCV-android-sdk" ]; then
-        bash "${PROJECT_ROOT}/setup_opencv_android.sh"
+        bash "${PROJECT_ROOT}/scripts/setup/setup_opencv_android.sh"
     else
         echo "OpenCV already installed"
     fi
     
     # Verify environment
-    bash "${PROJECT_ROOT}/verify_opencv_android.sh"
+    bash "${PROJECT_ROOT}/scripts/setup/verify_opencv_android.sh"
 }
 
 cmd_docker_build() {
@@ -87,7 +87,7 @@ cmd_docker_test() {
     echo "Testing with Docker..."
     echo "Note: You need to forward ADB to the container"
     echo "Run: adb kill-server && adb -a nodaemon server"
-    docker-compose run --rm android-ci bash -c "adb devices && bash /workspace/ci/test-android.sh"
+    docker-compose run --rm android-ci bash -c "adb devices && bash /workspace/scripts/ci/test-android.sh"
 }
 
 cmd_logs() {

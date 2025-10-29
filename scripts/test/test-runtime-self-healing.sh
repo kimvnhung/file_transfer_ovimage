@@ -6,7 +6,7 @@
 set +e  # Don't exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Colors
 RED='\033[0;31m'
@@ -329,8 +329,8 @@ rebuild_app() {
     log "Rebuilding application with fixes..."
     
     # Use existing build script
-    if [ -f "$PROJECT_ROOT/self-heal-build.sh" ]; then
-        "$PROJECT_ROOT/self-heal-build.sh" > "$LOGS_DIR/rebuild.log" 2>&1
+    if [ -f "$PROJECT_ROOT/scripts/build/self-heal-build.sh" ]; then
+        "$PROJECT_ROOT/scripts/build/self-heal-build.sh" > "$LOGS_DIR/rebuild.log" 2>&1
         
         if [ $? -eq 0 ]; then
             log_success "Rebuild successful"
@@ -340,7 +340,7 @@ rebuild_app() {
             return 1
         fi
     else
-        log_error "Build script not found"
+        log_error "Build script not found at $PROJECT_ROOT/scripts/build/self-heal-build.sh"
         return 1
     fi
 }

@@ -3,8 +3,8 @@
 [![Qt Version](https://img.shields.io/badge/Qt-6.0%2B-green.svg)](https://www.qt.io/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.0%2B-blue.svg)](https://opencv.org/)
 [![License](https://img.shields.io/badge/license-BSD--3-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-self--healing-brightgreen.svg)](SELF_HEALING_CI.md)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-automated-blue.svg)](CI_CD_GUIDE.md)
+[![Build Status](https://img.shields.io/badge/build-self--healing-brightgreen.svg)](docs/guides/SELF_HEALING_CI.md)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-automated-blue.svg)](docs/guides/CI_CD_GUIDE.md)
 
 A research project exploring innovative file transfer methods between PC and mobile devices using visual communication - transferring data through images/video without requiring wireless, internet, or cable connections.
 
@@ -42,6 +42,10 @@ file_transfer_ovimage/
 ├── CMakeLists.txt              # Main build configuration
 ├── declarative-camera.qrc      # Qt resource file
 ├── README.md                   # This file
+├── LICENSE                     # BSD-3-Clause license
+├── build.sh                    # Quick build wrapper
+├── test.sh                     # Quick test wrapper
+├── ci.sh                       # Quick CI wrapper
 ├── src/                        # Source files
 │   ├── app/
 │   │   └── main.cpp           # Application entry point
@@ -54,29 +58,53 @@ file_transfer_ovimage/
 │       └── opencv_player_viewport.h
 ├── qml/                        # QML UI files
 │   ├── views/                 # Main application views
-│   │   ├── MainView.qml
-│   │   ├── PhotoPreview.qml
-│   │   ├── VideoPreview.qml
-│   │   ├── HomePage.qml
-│   │   └── PermissionDenied.qml
 │   ├── controls/              # Reusable controls
-│   │   ├── PhotoCaptureControls.qml
-│   │   ├── VideoCaptureControls.qml
-│   │   ├── ZoomControl.qml
-│   │   └── FlashControl.qml
 │   ├── components/            # UI components
-│   │   ├── CameraButton.qml
-│   │   ├── CameraListButton.qml
-│   │   └── CameraPropertyButton.qml
 │   └── dialogs/               # Dialog components
-│       ├── Popup.qml
-│       ├── CameraListPopup.qml
-│       └── CameraPropertyPopup.qml
 ├── resources/                  # Application resources
 │   └── images/                # Image assets
-└── docs/                       # Documentation
-    ├── images/
-    └── src/
+├── scripts/                    # Build & test automation
+│   ├── build/                 # Build scripts
+│   │   ├── self-heal-build.sh
+│   │   └── ci-helper.sh
+│   ├── test/                  # Test scripts
+│   │   └── test-runtime-self-healing.sh
+│   ├── demo/                  # Demo scripts
+│   │   ├── demo-self-healing.sh
+│   │   ├── simulate-self-healing.sh
+│   │   └── simulate-runtime-test.sh
+│   ├── setup/                 # Setup utilities
+│   │   ├── setup_opencv_android.sh
+│   │   ├── verify_opencv_android.sh
+│   │   ├── connect_android_wifi.sh
+│   │   └── adb_reconnect.sh
+│   └── ci/                    # CI scripts
+│       ├── build-android.sh
+│       └── test-android.sh
+├── docs/                       # Documentation
+│   ├── guides/                # Comprehensive guides
+│   │   ├── SELF_HEALING_CI.md
+│   │   ├── RUNTIME_SELF_HEALING.md
+│   │   ├── CI_CD_GUIDE.md
+│   │   ├── ANDROID_BUILD_GUIDE.md
+│   │   ├── OPENCV_ANDROID_SETUP_COMPLETE.md
+│   │   └── WSL_ANDROID_DEVICE_SETUP.md
+│   ├── reference/             # Quick references
+│   │   ├── CI_QUICK_START.md
+│   │   ├── SELF_HEALING_QUICK_REF.md
+│   │   └── QUICK_SETUP.md
+│   ├── summary/               # Project summaries
+│   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   └── CHANGELOG.md
+│   ├── images/                # Documentation images
+│   └── src/                   # Source documentation
+│       └── declarative-camera.qdoc
+├── .github/                    # GitHub configuration
+│   ├── workflows/
+│   │   └── self-healing-ci.yml
+│   └── scripts/
+│       └── analyze-and-fix.sh
+└── build/                      # Build outputs
 ```
 
 ## 🛠️ Requirements
@@ -121,21 +149,21 @@ cmake --build .
 ### Android
 
 See comprehensive guides:
-- **[Quick Setup](QUICK_SETUP.md)** - Fast setup with Qt Creator
-- **[Android Build Guide](ANDROID_BUILD_GUIDE.md)** - Complete manual build instructions
-- **[OpenCV Android Setup](OPENCV_ANDROID_SETUP_COMPLETE.md)** - OpenCV configuration
-- **[WSL Device Setup](WSL_ANDROID_DEVICE_SETUP.md)** - Connect devices in WSL2
+- **[Quick Setup](docs/reference/QUICK_SETUP.md)** - Fast setup with Qt Creator
+- **[Android Build Guide](docs/guides/ANDROID_BUILD_GUIDE.md)** - Complete manual build instructions
+- **[OpenCV Android Setup](docs/guides/OPENCV_ANDROID_SETUP_COMPLETE.md)** - OpenCV configuration
+- **[WSL Device Setup](docs/guides/WSL_ANDROID_DEVICE_SETUP.md)** - Connect devices in WSL2
 
 **Quick Android build:**
 ```bash
 # Setup OpenCV Android SDK
-./setup_opencv_android.sh
+./scripts/setup/setup_opencv_android.sh
 
 # Build with self-healing system (auto-fixes errors)
-./self-heal-build.sh
+./build.sh
 
 # Or use CI helper
-./ci-helper.sh build
+./ci.sh build
 ```
 
 ### Windows
@@ -171,21 +199,28 @@ This project includes an **advanced self-healing CI/CD system** that automatical
 - **📊 Detailed Reports** - Comprehensive logs and artifacts
 - **🚀 GitHub Actions** - Automated cloud builds and testing
 - **🐳 Docker Support** - Reproducible containerized builds
+- **📱 Runtime Testing** - Deploy to device, analyze logcat, auto-fix errors
 
 **Quick start:**
 ```bash
 # Local self-healing build
-./self-heal-build.sh
+./build.sh
+
+# Runtime testing on connected device
+./test.sh
 
 # Use CI helper for manual control
-./ci-helper.sh build
-./ci-helper.sh test
+./ci.sh build
+./ci.sh test
+./ci.sh logs
 ```
 
 **Documentation:**
-- **[Self-Healing CI Guide](SELF_HEALING_CI.md)** - Complete self-healing system documentation
-- **[CI/CD Guide](CI_CD_GUIDE.md)** - Manual CI/CD setup and usage
-- **[CI Quick Start](CI_QUICK_START.md)** - Quick reference
+- **[Self-Healing CI Guide](docs/guides/SELF_HEALING_CI.md)** - Complete build-time self-healing documentation
+- **[Runtime Self-Healing](docs/guides/RUNTIME_SELF_HEALING.md)** - Device testing and runtime error fixing
+- **[CI/CD Guide](docs/guides/CI_CD_GUIDE.md)** - Manual CI/CD setup and usage
+- **[CI Quick Start](docs/reference/CI_QUICK_START.md)** - Quick reference
+- **[Self-Healing Quick Ref](docs/reference/SELF_HEALING_QUICK_REF.md)** - Command cheat sheet
 
 
 ## 📱 Usage
