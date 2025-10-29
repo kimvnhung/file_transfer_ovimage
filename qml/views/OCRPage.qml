@@ -70,8 +70,8 @@ Page {
         onTextRecognized: function(text) {
             resultText.text = text
             
-            // Auto-copy if enabled
-            if (autoCopySwitch.checked) {
+            // Auto-copy if enabled (check if switch exists)
+            if (typeof autoCopySwitch !== 'undefined' && autoCopySwitch && autoCopySwitch.checked) {
                 Qt.application.clipboard.text = text
                 statusLabel.text = "✓ Text copied to clipboard"
                 statusLabel.visible = true
@@ -135,6 +135,7 @@ Page {
         anchors.bottom: parent.bottom
         height: controlsColumn.height + 20
         color: "#E0000000"
+        visible: typeof tesseractOCR !== 'undefined' && tesseractOCR !== null
         
         Column {
             id: controlsColumn
