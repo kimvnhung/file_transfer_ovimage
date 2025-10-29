@@ -185,7 +185,8 @@ monitor_logcat() {
     # Capture screenshot after monitoring
     capture_screen "$attempt"
     
-    echo "$logcat_file"
+    # Return the logcat file path (don't echo, just return via variable)
+    LOGCAT_OUTPUT="$logcat_file"
 }
 
 # Analyze logcat for QML/Qt errors
@@ -423,7 +424,8 @@ main() {
         capture_screen "$ATTEMPT-launched"
         
         # Monitor logcat
-        LOGCAT_FILE=$(monitor_logcat $ATTEMPT)
+        monitor_logcat $ATTEMPT
+        LOGCAT_FILE="$LOGCAT_OUTPUT"
         
         # Stop app
         stop_app
