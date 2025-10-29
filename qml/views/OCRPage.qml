@@ -65,6 +65,7 @@ Page {
     OCRCameraView {
         id: ocrCamera
         anchors.fill: parent
+        visible: typeof tesseractOCR !== 'undefined' && tesseractOCR !== null
         
         onTextRecognized: function(text) {
             resultText.text = text
@@ -83,6 +84,47 @@ Page {
             statusLabel.visible = true
             statusLabel.color = "red"
             statusTimer.restart()
+        }
+    }
+    
+    // Warning message for platforms without OCR
+    Rectangle {
+        anchors.fill: parent
+        visible: typeof tesseractOCR === 'undefined' || tesseractOCR === null
+        color: "#F0F0F0"
+        
+        ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 20
+            width: Math.min(parent.width * 0.8, 400)
+            
+            Label {
+                text: "⚠️"
+                font.pixelSize: 64
+                Layout.alignment: Qt.AlignHCenter
+            }
+            
+            Label {
+                text: "OCR Not Available"
+                font.pixelSize: 24
+                font.bold: true
+                Layout.alignment: Qt.AlignHCenter
+            }
+            
+            Label {
+                text: "Text recognition is currently only supported on Desktop builds.\n\n" +
+                      "Android support requires building Tesseract for ARM architecture."
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                horizontalAlignment: Text.AlignHCenter
+                Layout.fillWidth: true
+            }
+            
+            Button {
+                text: "← Back to Menu"
+                Layout.alignment: Qt.AlignHCenter
+                onClicked: stackView.pop()
+            }
         }
     }
     
