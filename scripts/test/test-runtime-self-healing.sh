@@ -19,7 +19,7 @@ NC='\033[0m'
 
 # Configuration
 MAX_ATTEMPTS=5
-APP_PACKAGE="com.example.file_transfer_ovimage"
+APP_PACKAGE="org.qtproject.example.file_transfer_ovimage"
 LOGCAT_TAG="Qt|QML|OpenCV"
 TEST_DURATION=15  # seconds to monitor app
 LOGS_DIR="$PROJECT_ROOT/ci-reports/runtime-test"
