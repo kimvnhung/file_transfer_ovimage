@@ -133,10 +133,12 @@ header h1 {
 /* Search */
 .search-box {
     margin-bottom: 30px;
+    display: flex;
+    gap: 10px;
 }
 
 #search {
-    width: 100%;
+    flex: 1;
     padding: 15px 20px;
     font-size: 1rem;
     background: var(--card-bg);
@@ -149,6 +151,43 @@ header h1 {
 #search:focus {
     outline: none;
     border-color: var(--primary);
+}
+
+.refresh-btn {
+    padding: 15px 30px;
+    font-size: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.refresh-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+}
+
+.refresh-btn.refreshing {
+    background: var(--warning);
+    animation: spin 1s linear infinite;
+}
+
+.refresh-btn.success {
+    background: var(--success);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Build Cards */

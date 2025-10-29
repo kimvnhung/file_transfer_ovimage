@@ -225,6 +225,11 @@ function setupEventListeners() {
         renderBuilds();
     });
     
+    // Refresh button
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+        manualRefresh();
+    });
+    
     // Modal close
     document.querySelector('.close').addEventListener('click', () => {
         document.getElementById('modal').style.display = 'none';
@@ -263,6 +268,25 @@ function startAutoRefresh() {
 
 function updateCountdown() {
     document.getElementById('refresh-countdown').textContent = countdown;
+}
+
+// Manual refresh
+function manualRefresh() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('refreshing');
+    btn.textContent = '🔄 Refreshing...';
+    
+    countdown = 30; // Reset countdown
+    loadTestData().then(() => {
+        btn.classList.remove('refreshing');
+        btn.textContent = '🔄 Refresh';
+        
+        // Show success feedback
+        btn.classList.add('success');
+        setTimeout(() => {
+            btn.classList.remove('success');
+        }, 1000);
+    });
 }
 
 // Expose functions to global scope
