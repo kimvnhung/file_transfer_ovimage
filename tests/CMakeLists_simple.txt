@@ -1,0 +1,21 @@
+# Simple Test Build (No Google Test dependency)
+cmake_minimum_required(VERSION 3.16)
+
+# Simple standalone test
+add_executable(simple_test
+    simple_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/steganography.cpp
+)
+
+target_link_libraries(simple_test
+    PRIVATE
+        Qt::Core
+        Qt::Gui
+)
+
+target_include_directories(simple_test
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/include/app
+)
+
+message(STATUS "Simple test executable configured: simple_test")

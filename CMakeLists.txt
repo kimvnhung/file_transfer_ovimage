@@ -126,6 +126,8 @@ set(QML_VIEWS
     qml/views/HomePage.qml
     qml/views/OCRPage.qml
     qml/views/DesktopTestView.qml
+    qml/views/FileTransferView.qml
+    qml/views/AboutView.qml
 )
 
 set(QML_CONTROLS
@@ -264,6 +266,18 @@ endif()
 # )
 
 # ============================================================================
+# Testing (Optional - enable with -DBUILD_TESTS=ON)
+# ============================================================================
+option(BUILD_TESTS "Build unit tests" OFF)
+
+if(BUILD_TESTS)
+    message(STATUS "Building with unit tests enabled")
+    add_subdirectory(tests)
+else()
+    message(STATUS "Unit tests disabled (use -DBUILD_TESTS=ON to enable)")
+endif()
+
+# ============================================================================
 # Print Configuration Summary
 # ============================================================================
 message(STATUS "==============================================")
@@ -274,4 +288,5 @@ message(STATUS "OpenCV Version: ${OpenCV_VERSION}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Build Tests: ${BUILD_TESTS}")
 message(STATUS "==============================================")

@@ -7,6 +7,8 @@
         <file>qml/views/VideoPreview.qml</file>
         <file>qml/views/HomePage.qml</file>
         <file>qml/views/FileTransferPage.qml</file>
+        <file>qml/views/FileTransferView.qml</file>
+        <file>qml/views/AboutView.qml</file>
         <file>qml/views/qmldir</file>
         
         <!-- QML Controls -->

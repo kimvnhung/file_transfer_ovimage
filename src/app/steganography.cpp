@@ -307,113 +307,86 @@ bool Steganography::embedDataInImage(QImage &image, const QByteArray &data)
 
 QByteArray Steganography::extractDataFromImage(const QImage &image)
 {
-    // First extract data size
-    QByteArray sizeData;
-    int dataIndex = 0;
-    int bitIndex = 0;
     int width = image.width();
     int height = image.height();
+    int totalPixels = width * height;
     
-    // Extract 8 bytes for size
-    while (sizeData.size() < 8) {
-        int x = dataIndex % width;
-        int y = dataIndex / width;
-        
-        if (y >= height) {
-            setLastError("Invalid image format");
-            return QByteArray();
-        }
-        
-        QRgb pixel = image.pixel(x, y);
-        int r = qRed(pixel);
-        int g = qGreen(pixel);
-        int b = qBlue(pixel);
-        
-        uchar byte = 0;
-        for (int channel = 0; channel < 3 && sizeData.size() < 8; ++channel) {
-            for (int bit = 0; bit < BITS_PER_CHANNEL && sizeData.size() < 8; ++bit) {
-                int value = 0;
-                switch (channel) {
-                case 0: value = (r >> bit) & 1; break;
-                case 1: value = (g >> bit) & 1; break;
-                case 2: value = (b >> bit) & 1; break;
-                }
-                
-                byte |= (value << bitIndex);
-                bitIndex++;
-                
-                if (bitIndex >= 8) {
-                    sizeData.append(byte);
-                    byte = 0;
-                    bitIndex = 0;
-                }
-            }
-        }
-        dataIndex++;
-    }
+    // Calculate total capacity to avoid reading beyond available data
+    int maxBytes = (totalPixels * 3 * BITS_PER_CHANNEL) / 8;
     
-    // Parse data size
-    QDataStream sizeStream(sizeData);
-    qint64 dataSize;
-    sizeStream >> dataSize;
+    QByteArray allData;
+    allData.reserve(maxBytes);
     
-    if (dataSize <= 0 || dataSize > 1024 * 1024 * 100) {  // Max 100MB
-        setLastError("Invalid data size");
-        return QByteArray();
-    }
-    
-    // Extract actual data
-    QByteArray result;
-    result.reserve(dataSize);
-    bitIndex = 0;
+    int byteIndex = 0;
+    int bitIndex = 0;
     uchar byte = 0;
     
-    while (result.size() < dataSize) {
-        int x = dataIndex % width;
-        int y = dataIndex / width;
-        
-        if (y >= height) {
-            setLastError("Incomplete data in image");
-            return QByteArray();
-        }
-        
-        QRgb pixel = image.pixel(x, y);
-        int r = qRed(pixel);
-        int g = qGreen(pixel);
-        int b = qBlue(pixel);
-        
-        for (int channel = 0; channel < 3 && result.size() < dataSize; ++channel) {
-            for (int bit = 0; bit < BITS_PER_CHANNEL && result.size() < dataSize; ++bit) {
-                int value = 0;
-                switch (channel) {
-                case 0: value = (r >> bit) & 1; break;
-                case 1: value = (g >> bit) & 1; break;
-                case 2: value = (b >> bit) & 1; break;
-                }
-                
-                byte |= (value << bitIndex);
-                bitIndex++;
-                
-                if (bitIndex >= 8) {
-                    result.append(byte);
-                    byte = 0;
-                    bitIndex = 0;
+    // Extract all data in one pass - matching encode structure exactly
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            QRgb pixel = image.pixel(x, y);
+            int r = qRed(pixel);
+            int g = qGreen(pixel);
+            int b = qBlue(pixel);
+            
+            // Extract bits from each channel
+            for (int channel = 0; channel < 3; ++channel) {
+                for (int bit = 0; bit < BITS_PER_CHANNEL; ++bit) {
+                    int value = 0;
+                    switch (channel) {
+                    case 0: value = (r >> bit) & 1; break;
+                    case 1: value = (g >> bit) & 1; break;
+                    case 2: value = (b >> bit) & 1; break;
+                    }
+                    
+                    byte |= (value << bitIndex);
+                    bitIndex++;
+                    
+                    if (bitIndex >= 8) {
+                        allData.append(byte);
+                        byte = 0;
+                        bitIndex = 0;
+                        byteIndex++;
+                        
+                        // Stop if we have enough data
+                        // First 8 bytes contain size
+                        if (byteIndex >= 8) {
+                            // Parse size from first 8 bytes
+                            QByteArray sizeData = allData.left(8);
+                            QDataStream sizeStream(sizeData);
+                            qint64 dataSize;
+                            sizeStream >> dataSize;
+                            
+                            // Validate size
+                            if (dataSize <= 0 || dataSize > 1024 * 1024 * 100) {
+                                setLastError("Invalid data size");
+                                return QByteArray();
+                            }
+                            
+                            // Check if we have all the data we need (8 bytes size + actual data)
+                            if (byteIndex >= 8 + dataSize) {
+                                // Return only the actual data (skip the 8-byte size header)
+                                setProgress(100);
+                                return allData.mid(8, dataSize);
+                            }
+                        }
+                    }
                 }
             }
         }
         
-        dataIndex++;
-        
         // Update progress
-        if (result.size() % 1024 == 0) {
-            int newProgress = 20 + (40 * result.size() / dataSize);
+        if (byteIndex >= 8) {
+            int newProgress = 50 + (50 * y / height);
             if (newProgress != m_progress) {
                 setProgress(newProgress);
             }
         }
     }
     
-    return result;
+    // If we get here, we didn't find valid data
+    setLastError("Invalid header or corrupted data");
+    return QByteArray();
 }
 
 QByteArray Steganography::createHeader(const QString &filename, qint64 fileSize)
