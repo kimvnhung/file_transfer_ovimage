@@ -13,6 +13,16 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Build Mode Configuration
+option(DESKTOP_MODE "Build for desktop with simplified UI" OFF)
+
+if(DESKTOP_MODE)
+    add_definitions(-DDESKTOP_MODE)
+    message(STATUS "Building in DESKTOP MODE - Simplified UI for testing")
+else()
+    message(STATUS "Building in MOBILE MODE - Full mobile UI")
+endif()
+
 # ============================================================================
 # Find Required Packages
 # ============================================================================
@@ -111,6 +121,7 @@ set(QML_VIEWS
     qml/views/VideoPreview.qml
     qml/views/HomePage.qml
     qml/views/OCRPage.qml
+    qml/views/DesktopTestView.qml
 )
 
 set(QML_CONTROLS

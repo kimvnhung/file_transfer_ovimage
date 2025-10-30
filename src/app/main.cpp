@@ -22,6 +22,23 @@ int main(int argc, char *argv[])
     // Expose TesseractOCR to QML
     engine.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
 
+#ifdef DESKTOP_MODE
+    // Desktop Test Mode - Load simplified UI
+    qDebug() << "=== DESKTOP TEST MODE ===";
+    qDebug() << "Loading simplified test UI...";
+    
+    auto setupView = [&engine](const QUrl &viewSource) {
+        QObject::connect(&engine, &QQmlApplicationEngine::quit, qApp, &QGuiApplication::quit);
+        engine.load(viewSource);
+    };
+    
+    setupView(QUrl("qrc:/qml/views/DesktopTestView.qml"));
+    
+#else
+    // Mobile Mode - Load full application UI with permissions
+    qDebug() << "=== MOBILE MODE ===";
+    qDebug() << "Loading full mobile UI...";
+    
     auto setupView = [&engine](const QUrl &viewSource) {
         // Qt.quit() called in embedded .qml by default only emits
         // quit() signal, so do this (optionally use Qt.exit()).
@@ -39,6 +56,8 @@ int main(int argc, char *argv[])
     });
 #else
     setupView(QUrl("qrc:/qml/views/AppMain.qml"));
+#endif
+
 #endif
 
     return app.exec();
