@@ -97,11 +97,22 @@ set(APP_SOURCES
     src/app/main.cpp
     src/app/tesseractocr.cpp
     src/app/steganography.cpp
+    src/app/steganography_v2.cpp
+    src/app/borderheader.cpp
+    src/app/framemanager.cpp
+    src/app/lsbcodec.cpp
+    src/app/stegoheader.cpp
 )
 
 set(APP_HEADERS
     include/app/tesseractocr.h
     include/app/steganography.h
+    include/app/steganography_v2.h
+    include/app/borderheader.h
+    include/app/framemanager.h
+    include/app/lsbcodec.h
+    include/app/stegoheader.h
+    include/app/imagedetector.h
 )
 
 set(OPENCV_PLAYER_SOURCES
@@ -207,6 +218,13 @@ qt_add_qml_module(opencv_player
     SOURCES
         ${OPENCV_PLAYER_SOURCES}
         ${OPENCV_PLAYER_HEADERS}
+        # Add Steganography V2 and dependencies to QML module
+        src/app/steganography_v2.cpp
+        src/app/borderheader.cpp
+        src/app/framemanager.cpp
+        include/app/steganography_v2.h
+        include/app/borderheader.h
+        include/app/framemanager.h
 )
 
 # Link OpenCV to the opencv_player module

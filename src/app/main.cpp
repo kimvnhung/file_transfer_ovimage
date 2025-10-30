@@ -25,6 +25,9 @@ int main(int argc, char *argv[])
     
     QQmlApplicationEngine engine;
     
+    // Add QML import path for opencv_player module
+    engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
+    
     // Expose TesseractOCR to QML
     engine.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
     

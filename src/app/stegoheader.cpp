@@ -1,5 +1,6 @@
 #include "stegoheader.h"
 #include <QDataStream>
+#include <QIODevice>
 #include <QDebug>
 
 StegoHeader::StegoHeader()

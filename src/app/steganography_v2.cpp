@@ -173,35 +173,52 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
     
     QStringList generatedFrames;
     
-    // Read file
+    // Get file info first
     QUrl url(fileUrl);
     QString filePath = url.isLocalFile() ? url.toLocalFile() : fileUrl;
-    QByteArray fileData = readFileData(filePath);
+    QFileInfo fileInfo(filePath);
     
-    if (fileData.isEmpty()) {
-        setLastError("Failed to read file: " + filePath);
+    if (!fileInfo.exists()) {
+        setLastError("File does not exist: " + filePath);
         m_isProcessing = false;
         emit isProcessingChanged();
         emit encodeFailed(m_lastError);
         return generatedFrames;
     }
     
-    QFileInfo fileInfo(filePath);
+    qint64 fileSize = fileInfo.size();
     QString filename = fileInfo.fileName();
     QString extension = "." + fileInfo.suffix();
     
+    // Calculate frame count without loading file
+    int totalFrames = FrameManager::calculateFrameCount(fileSize);
+    qint64 frameCapacity = FrameManager::getFrameCapacity();
+    
+    qDebug() << "SteganographyV2: Encoding" << fileSize << "bytes into" << totalFrames << "frame(s)";
+    
+    // Open file for reading
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        setLastError("Failed to open file: " + filePath);
+        m_isProcessing = false;
+        emit isProcessingChanged();
+        emit encodeFailed(m_lastError);
+        return generatedFrames;
+    }
+    
+    setProgress(5);
+    
+    // Calculate checksum in chunks to avoid memory issues
+    QCryptographicHash hash(QCryptographicHash::Md5);
+    const qint64 chunkSize = 1024 * 1024; // 1MB chunks for hashing
+    while (!file.atEnd()) {
+        QByteArray chunk = file.read(chunkSize);
+        hash.addData(chunk);
+    }
+    QByteArray checksum = hash.result();
+    file.seek(0); // Reset to beginning
+    
     setProgress(10);
-    
-    // Calculate checksum
-    QByteArray checksum = QCryptographicHash::hash(fileData, QCryptographicHash::Md5);
-    
-    // Split into frames
-    QList<QByteArray> frameChunks = FrameManager::splitIntoFrames(fileData);
-    int totalFrames = frameChunks.size();
-    
-    qDebug() << "SteganographyV2: Encoding" << fileData.size() << "bytes into" << totalFrames << "frame(s)";
-    
-    setProgress(20);
     
     // Prepare output directory
     QUrl outDirUrl(outputDir);
@@ -210,6 +227,7 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
     if (!dir.exists()) {
         if (!dir.mkpath(".")) {
             setLastError("Failed to create output directory: " + outDirPath);
+            file.close();
             m_isProcessing = false;
             emit isProcessingChanged();
             emit encodeFailed(m_lastError);
@@ -220,16 +238,29 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
     // Determine base name
     QString useBaseName = baseName.isEmpty() ? fileInfo.completeBaseName() : baseName;
     
-    // Generate each frame
+    // Generate each frame by reading chunks from file
     for (int i = 0; i < totalFrames; ++i) {
-        int progressStart = 20 + (i * 70 / totalFrames);
+        int progressStart = 10 + (i * 85 / totalFrames);
         setProgress(progressStart);
+        
+        // Read chunk for this frame (avoiding loading entire file)
+        qint64 bytesToRead = qMin(frameCapacity, fileSize - file.pos());
+        QByteArray frameData = file.read(bytesToRead);
+        
+        if (frameData.isEmpty() && bytesToRead > 0) {
+            setLastError(QString("Failed to read data for frame %1").arg(i + 1));
+            file.close();
+            m_isProcessing = false;
+            emit isProcessingChanged();
+            emit encodeFailed(m_lastError);
+            return QStringList();
+        }
         
         // Create header
         BorderHeader::Data header = BorderHeader::createHeader(
             filename,
             extension,
-            fileData.size(),
+            fileSize,
             i + 1,
             totalFrames,
             checksum
@@ -241,6 +272,7 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
         // Encode header in border
         if (!BorderHeader::encodeToBorder(frame, header)) {
             setLastError(QString("Failed to encode header for frame %1").arg(i + 1));
+            file.close();
             m_isProcessing = false;
             emit isProcessingChanged();
             emit encodeFailed(m_lastError);
@@ -248,8 +280,9 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
         }
         
         // Embed data in frame
-        if (!embedDataInFrame(frame, frameChunks[i])) {
+        if (!embedDataInFrame(frame, frameData)) {
             setLastError(QString("Failed to embed data in frame %1").arg(i + 1));
+            file.close();
             m_isProcessing = false;
             emit isProcessingChanged();
             emit encodeFailed(m_lastError);
@@ -263,6 +296,7 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
         // Save frame
         if (!frame.save(framePath, "PNG")) {
             setLastError(QString("Failed to save frame %1 to: %2").arg(i + 1).arg(framePath));
+            file.close();
             m_isProcessing = false;
             emit isProcessingChanged();
             emit encodeFailed(m_lastError);
@@ -273,13 +307,15 @@ QStringList SteganographyV2::encodeFileInFrames(const QString &fileUrl,
         emit frameGenerated(i + 1, totalFrames);
         
         qDebug() << "SteganographyV2: Generated frame" << (i + 1) << "/" << totalFrames 
-                 << "(" << frameChunks[i].size() << "bytes):" << framePath;
+                 << "(" << frameData.size() << "bytes):" << framePath;
     }
+    
+    file.close();
     
     setProgress(100);
     m_isProcessing = false;
     emit isProcessingChanged();
-    emit encodeComplete(generatedFrames.join(", "), fileData.size());
+    emit encodeComplete(generatedFrames.join(", "), fileSize);
     
     return generatedFrames;
 }
