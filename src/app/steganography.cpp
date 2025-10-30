@@ -5,6 +5,7 @@
 #include <QUrl>
 #include <QDebug>
 #include <QDataStream>
+#include <cmath>
 
 Steganography::Steganography(QObject *parent)
     : QObject(parent)
@@ -38,28 +39,7 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
     emit isProcessingChanged();
     setProgress(0);
     
-    // Load image
-    QUrl imgUrl(imageUrl);
-    QString imagePath = imgUrl.isLocalFile() ? imgUrl.toLocalFile() : imageUrl;
-    QImage image(imagePath);
-    
-    if (image.isNull()) {
-        setLastError("Failed to load image: " + imagePath);
-        m_isProcessing = false;
-        emit isProcessingChanged();
-        emit encodeFailed(m_lastError);
-        return false;
-    }
-    
-    // Ensure RGB format
-    if (image.format() != QImage::Format_RGB888 && 
-        image.format() != QImage::Format_ARGB32) {
-        image = image.convertToFormat(QImage::Format_RGB888);
-    }
-    
-    setProgress(10);
-    
-    // Read file data
+    // Read file data first to determine size for auto-generation
     QUrl fUrl(fileUrl);
     QString filePath = fUrl.isLocalFile() ? fUrl.toLocalFile() : fileUrl;
     QByteArray fileData = readFileData(filePath);
@@ -72,14 +52,70 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
         return false;
     }
     
-    setProgress(20);
-    
-    // Check capacity
-    qint64 capacity = calculateCapacity(imageUrl);
     QFileInfo fileInfo(filePath);
-    
     QByteArray header = createHeader(fileInfo.fileName(), fileData.size());
     QByteArray fullData = header + fileData;
+    
+    setProgress(5);
+    
+    QImage image;
+    
+    // Check if we need to auto-generate carrier image (empty imageUrl)
+    if (imageUrl.isEmpty()) {
+        // Auto-generate carrier image based on required capacity
+        qint64 requiredCapacity = fullData.size();
+        
+        // Calculate image dimensions needed
+        // capacity = (width * height * 3 * 2) / 8 - 256
+        // (capacity + 256) * 8 / 6 = width * height
+        qint64 requiredPixels = ((requiredCapacity + 256) * 8 + 5) / 6; // Round up
+        
+        // Use square image for simplicity
+        int width = static_cast<int>(std::sqrt(requiredPixels)) + 1;
+        int height = (requiredPixels + width - 1) / width; // Round up
+        
+        // Add 10% margin for safety
+        width = static_cast<int>(width * 1.1);
+        height = static_cast<int>(height * 1.1);
+        
+        // Create gradient image
+        image = QImage(width, height, QImage::Format_RGB888);
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                int r = (x * 255) / width;
+                int g = (y * 255) / height;
+                int b = ((x + y) * 255) / (width + height);
+                image.setPixel(x, y, qRgb(r, g, b));
+            }
+        }
+        
+        qDebug() << "Auto-generated carrier image:" << width << "x" << height 
+                 << "for" << requiredCapacity << "bytes";
+    } else {
+        // Load existing image
+        QUrl imgUrl(imageUrl);
+        QString imagePath = imgUrl.isLocalFile() ? imgUrl.toLocalFile() : imageUrl;
+        image.load(imagePath);
+        
+        if (image.isNull()) {
+            setLastError("Failed to load image: " + imagePath);
+            m_isProcessing = false;
+            emit isProcessingChanged();
+            emit encodeFailed(m_lastError);
+            return false;
+        }
+    }
+    
+    // Ensure RGB format
+    if (image.format() != QImage::Format_RGB888 && 
+        image.format() != QImage::Format_ARGB32) {
+        image = image.convertToFormat(QImage::Format_RGB888);
+    }
+    
+    setProgress(10);
+    
+    // Check capacity
+    qint64 capacity = (image.width() * image.height() * BITS_PER_PIXEL * BITS_PER_CHANNEL) / 8 - 256;
     
     if (fullData.size() > capacity) {
         setLastError(QString("File too large. Need %1 bytes, capacity is %2 bytes")
@@ -90,7 +126,7 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
         return false;
     }
     
-    setProgress(30);
+    setProgress(20);
     
     // Embed data
     if (!embedDataInImage(image, fullData)) {
@@ -106,8 +142,21 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
     QUrl outUrl(outputUrl);
     QString outputPath = outUrl.isLocalFile() ? outUrl.toLocalFile() : outputUrl;
     
+    // Ensure output directory exists
+    QFileInfo outInfo(outputPath);
+    QDir outDir = outInfo.dir();
+    if (!outDir.exists()) {
+        if (!outDir.mkpath(".")) {
+            setLastError("Failed to create output directory: " + outDir.path());
+            m_isProcessing = false;
+            emit isProcessingChanged();
+            emit encodeFailed(m_lastError);
+            return false;
+        }
+    }
+    
     if (!image.save(outputPath, "PNG")) {  // Use PNG to preserve data
-        setLastError("Failed to save output image");
+        setLastError("Failed to save output image to: " + outputPath);
         m_isProcessing = false;
         emit isProcessingChanged();
         emit encodeFailed(m_lastError);
