@@ -289,6 +289,78 @@ QString Steganography::getHiddenFileInfo(const QString &imageUrl)
         .arg(header.fileSize);
 }
 
+bool Steganography::extractEncodedImage(const QString &largerImageUrl, const QString &outputUrl)
+{
+    m_isProcessing = true;
+    emit isProcessingChanged();
+    setProgress(0);
+    
+    // Load the larger image
+    QUrl url(largerImageUrl);
+    QString imagePath = url.isLocalFile() ? url.toLocalFile() : largerImageUrl;
+    QImage largerImage(imagePath);
+    
+    if (largerImage.isNull()) {
+        setLastError("Failed to load image: " + imagePath);
+        m_isProcessing = false;
+        emit isProcessingChanged();
+        return false;
+    }
+    
+    setProgress(10);
+    
+    // Find the region containing encoded data
+    QRect encodedRegion = findEncodedRegion(largerImage);
+    
+    if (encodedRegion.isNull() || !encodedRegion.isValid()) {
+        setLastError("Could not find encoded image region in the larger image");
+        m_isProcessing = false;
+        emit isProcessingChanged();
+        return false;
+    }
+    
+    setProgress(50);
+    
+    qDebug() << "Found encoded region at:" << encodedRegion;
+    
+    // Extract the encoded sub-image
+    QImage encodedImage = largerImage.copy(encodedRegion);
+    
+    setProgress(70);
+    
+    // Save the extracted encoded image
+    QUrl outUrl(outputUrl);
+    QString outputPath = outUrl.isLocalFile() ? outUrl.toLocalFile() : outputUrl;
+    
+    // Ensure output directory exists
+    QFileInfo outInfo(outputPath);
+    QDir outDir = outInfo.dir();
+    if (!outDir.exists()) {
+        if (!outDir.mkpath(".")) {
+            setLastError("Failed to create output directory: " + outDir.path());
+            m_isProcessing = false;
+            emit isProcessingChanged();
+            return false;
+        }
+    }
+    
+    if (!encodedImage.save(outputPath, "PNG")) {
+        setLastError("Failed to save extracted encoded image");
+        m_isProcessing = false;
+        emit isProcessingChanged();
+        return false;
+    }
+    
+    setProgress(100);
+    m_isProcessing = false;
+    emit isProcessingChanged();
+    
+    qDebug() << "Encoded image extracted successfully:" << outputPath;
+    qDebug() << "Extracted region size:" << encodedRegion.width() << "x" << encodedRegion.height();
+    
+    return true;
+}
+
 // Private helper methods
 
 bool Steganography::embedDataInImage(QImage &image, const QByteArray &data)
@@ -523,6 +595,121 @@ bool Steganography::writeFileData(const QString &filePath, const QByteArray &dat
         return false;
     }
     
+    return true;
+}
+
+QRect Steganography::findEncodedRegion(const QImage &image)
+{
+    // Strategy: Scan the image in a grid pattern looking for valid steganography headers
+    // The encoded image should have our magic bytes "STEG" at the beginning
+    
+    int width = image.width();
+    int height = image.height();
+    int stepSize = 10; // Check every 10 pixels to speed up search
+    
+    // Try different possible sizes for the encoded region
+    // Start with common sizes and expand
+    QList<QSize> commonSizes = {
+        QSize(100, 100), QSize(200, 200), QSize(300, 300),
+        QSize(500, 500), QSize(1000, 1000),
+        QSize(512, 512), QSize(1024, 1024)
+    };
+    
+    // First, try to detect if the entire image is the encoded image
+    if (hasHiddenData(QString())) {
+        // Check if starting from (0,0) works
+        int detectedWidth = 0, detectedHeight = 0;
+        if (hasValidHeaderAt(image, 0, 0, detectedWidth, detectedHeight)) {
+            if (detectedWidth > 0 && detectedHeight > 0) {
+                return QRect(0, 0, detectedWidth, detectedHeight);
+            }
+        }
+    }
+    
+    // Scan the image looking for encoded regions
+    for (int y = 0; y < height - 50; y += stepSize) {
+        for (int x = 0; x < width - 50; x += stepSize) {
+            int detectedWidth = 0, detectedHeight = 0;
+            
+            // Check if there's a valid header at this position
+            if (hasValidHeaderAt(image, x, y, detectedWidth, detectedHeight)) {
+                // Validate the detected dimensions
+                if (detectedWidth > 0 && detectedHeight > 0 &&
+                    x + detectedWidth <= width && y + detectedHeight <= height) {
+                    return QRect(x, y, detectedWidth, detectedHeight);
+                }
+            }
+        }
+        
+        // Update progress during search
+        int searchProgress = 10 + (40 * y / height);
+        if (searchProgress != m_progress) {
+            setProgress(searchProgress);
+        }
+    }
+    
+    return QRect(); // Not found
+}
+
+bool Steganography::hasValidHeaderAt(const QImage &image, int startX, int startY, int &width, int &height)
+{
+    // Extract a small region to check for the magic bytes and determine dimensions
+    // We need at least enough pixels to extract the header
+    
+    int maxTestWidth = qMin(200, image.width() - startX);
+    int maxTestHeight = qMin(200, image.height() - startY);
+    
+    if (maxTestWidth < 50 || maxTestHeight < 50) {
+        return false; // Too small to contain valid data
+    }
+    
+    // Create a test image from this region
+    QImage testRegion = image.copy(startX, startY, maxTestWidth, maxTestHeight);
+    
+    // Try to extract header data
+    QByteArray testData = extractDataFromImage(testRegion);
+    
+    if (testData.size() < 20) { // Minimum header size
+        return false;
+    }
+    
+    // Check magic bytes
+    if (testData[0] != 'S' || testData[1] != 'T' || 
+        testData[2] != 'E' || testData[3] != 'G') {
+        return false;
+    }
+    
+    // Parse header to get file size
+    DataHeader header = parseHeader(testData);
+    
+    if (header.fileSize <= 0 || header.fileSize > 1024 * 1024 * 100) {
+        return false; // Invalid file size
+    }
+    
+    // Calculate required dimensions based on data size
+    int headerSize = 4 + 2 + 2 + header.filenameLength + 8;
+    qint64 totalDataSize = headerSize + header.fileSize;
+    
+    // capacity = (width * height * 3 * 2) / 8
+    // width * height = (capacity * 8) / 6
+    qint64 requiredPixels = ((totalDataSize + 8) * 8 + 5) / 6; // +8 for size header
+    
+    // Estimate dimensions (assuming square or close to square)
+    int estimatedWidth = static_cast<int>(std::sqrt(requiredPixels)) + 10;
+    int estimatedHeight = (requiredPixels + estimatedWidth - 1) / estimatedWidth + 10;
+    
+    // Validate the dimensions are reasonable
+    if (startX + estimatedWidth <= image.width() && 
+        startY + estimatedHeight <= image.height()) {
+        width = estimatedWidth;
+        height = estimatedHeight;
+        return true;
+    }
+    
+    // If estimated dimensions don't fit, try to find the actual boundaries
+    // by checking where the encoded data ends
+    width = maxTestWidth;
+    height = maxTestHeight;
     return true;
 }
 

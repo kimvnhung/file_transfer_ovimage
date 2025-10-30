@@ -47,6 +47,10 @@ public:
     // Get info about hidden data without extracting
     Q_INVOKABLE QString getHiddenFileInfo(const QString &imageUrl);
     
+    // Extract encoded image from a larger image (finds and extracts the steganography region)
+    Q_INVOKABLE bool extractEncodedImage(const QString &largerImageUrl, 
+                                         const QString &outputUrl);
+    
 signals:
     void isProcessingChanged();
     void progressChanged();
@@ -77,6 +81,10 @@ private:
     
     QByteArray createHeader(const QString &filename, qint64 fileSize);
     DataHeader parseHeader(const QByteArray &data);
+    
+    // Helper for extracting encoded image from larger image
+    QRect findEncodedRegion(const QImage &image);
+    bool hasValidHeaderAt(const QImage &image, int startX, int startY, int &width, int &height);
     
     void setProgress(int value);
     void setLastError(const QString &error);

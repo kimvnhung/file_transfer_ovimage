@@ -16,6 +16,10 @@ Rectangle {
     property string decodeEncodedImagePath: ""
     property string decodeOutputFilePath: ""
     
+    // Extract properties
+    property string extractLargerImagePath: ""
+    property string extractOutputImagePath: ""
+    
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -59,6 +63,11 @@ Rectangle {
             
             TabButton {
                 text: "📥 Decode File"
+                font.pixelSize: 14
+            }
+            
+            TabButton {
+                text: "✂️ Extract Image"
                 font.pixelSize: 14
             }
         }
@@ -571,6 +580,237 @@ Rectangle {
                     }
                 }
             }
+            
+            // =====================================================================
+            // EXTRACT TAB
+            // =====================================================================
+            Item {
+                ScrollView {
+                    anchors.fill: parent
+                    contentWidth: availableWidth
+                    
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: 15
+                        anchors.margins: 20
+                        
+                        Label {
+                            text: "Extract an encoded image that's embedded in a larger image"
+                            font.pixelSize: 12
+                            color: "#7F8C8D"
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 10
+                        }
+                        
+                        // Step 1: Select Larger Image
+                        GroupBox {
+                            title: "1️⃣ Select Larger Image"
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 10
+                                
+                                Button {
+                                    text: extractLargerImagePath ? "✓ Image Selected" : "📁 Choose Larger Image"
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 45
+                                    font.pixelSize: 13
+                                    
+                                    background: Rectangle {
+                                        color: parent.pressed ? "#D35400" : parent.hovered ? "#E67E22" : "#F39C12"
+                                        radius: 5
+                                    }
+                                    
+                                    contentItem: Text {
+                                        text: parent.text
+                                        font: parent.font
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                    
+                                    onClicked: extractLargerImageDialog.open()
+                                }
+                                
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 80
+                                    color: extractLargerImagePath ? "#FEF5E7" : "#F8F9F9"
+                                    radius: 5
+                                    border.color: extractLargerImagePath ? "#F39C12" : "#BDC3C7"
+                                    border.width: 2
+                                    
+                                    Label {
+                                        anchors.fill: parent
+                                        anchors.margins: 15
+                                        text: extractLargerImagePath ? "📁 " + extractLargerImagePath.split('/').pop() : "No image selected"
+                                        font.pixelSize: 12
+                                        font.bold: extractLargerImagePath !== ""
+                                        color: extractLargerImagePath ? "#D68910" : "#95A5A6"
+                                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                }
+                                
+                                // Image preview
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 250
+                                    color: "#34495E"
+                                    radius: 5
+                                    visible: extractLargerImagePath !== ""
+                                    
+                                    Image {
+                                        anchors.fill: parent
+                                        anchors.margins: 5
+                                        source: extractLargerImagePath || ""
+                                        fillMode: Image.PreserveAspectFit
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Step 2: Choose Output Location
+                        GroupBox {
+                            title: "2️⃣ Choose Output Location for Extracted Image"
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 10
+                                
+                                Button {
+                                    text: extractOutputImagePath ? "✓ Location Set" : "💾 Choose Save Location"
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 45
+                                    font.pixelSize: 13
+                                    
+                                    background: Rectangle {
+                                        color: parent.pressed ? "#6C3483" : parent.hovered ? "#7D3C98" : "#8E44AD"
+                                        radius: 5
+                                    }
+                                    
+                                    contentItem: Text {
+                                        text: parent.text
+                                        font: parent.font
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                    
+                                    onClicked: extractOutputDialog.open()
+                                }
+                                
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 60
+                                    color: extractOutputImagePath ? "#F4ECF7" : "#F8F9F9"
+                                    radius: 5
+                                    border.color: extractOutputImagePath ? "#8E44AD" : "#BDC3C7"
+                                    border.width: 2
+                                    
+                                    Label {
+                                        anchors.fill: parent
+                                        anchors.margins: 15
+                                        text: extractOutputImagePath ? "💾 " + extractOutputImagePath : "No output location selected"
+                                        font.pixelSize: 12
+                                        font.bold: extractOutputImagePath !== ""
+                                        color: extractOutputImagePath ? "#6C3483" : "#95A5A6"
+                                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Progress Bar
+                        ProgressBar {
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            from: 0
+                            to: 100
+                            value: steganography.progress
+                            visible: steganography.isProcessing && tabBar.currentIndex === 2
+                        }
+                        
+                        Label {
+                            text: "Processing: " + steganography.progress + "%"
+                            font.pixelSize: 12
+                            color: "#3498DB"
+                            Layout.alignment: Qt.AlignHCenter
+                            visible: steganography.isProcessing && tabBar.currentIndex === 2
+                        }
+                        
+                        // Extract Button
+                        Button {
+                            text: steganography.isProcessing ? "⏳ Extracting..." : "✂️ Extract Encoded Image"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 55
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            enabled: !steganography.isProcessing && extractLargerImagePath && extractOutputImagePath
+                            font.pixelSize: 16
+                            font.bold: true
+                            
+                            background: Rectangle {
+                                color: parent.enabled ? 
+                                       (parent.pressed ? "#D35400" : parent.hovered ? "#E67E22" : "#F39C12") : "#95A5A6"
+                                radius: 8
+                            }
+                            
+                            contentItem: Text {
+                                text: parent.text
+                                font: parent.font
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            
+                            onClicked: performExtract()
+                        }
+                        
+                        // Extract Status Message
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 70
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            color: extractStatusMessage.isError ? "#E74C3C" : "#2ECC71"
+                            radius: 8
+                            visible: extractStatusMessage.text !== ""
+                            
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: 15
+                                spacing: 10
+                                
+                                Label {
+                                    text: extractStatusMessage.isError ? "❌" : "✅"
+                                    font.pixelSize: 24
+                                }
+                                
+                                Label {
+                                    id: extractStatusMessage
+                                    property bool isError: false
+                                    text: ""
+                                    color: "white"
+                                    font.pixelSize: 12
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+                        }
+                        
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+            }
         }
     }
     
@@ -645,6 +885,37 @@ Rectangle {
         }
     }
     
+    // Extract dialogs
+    FileDialog {
+        id: extractLargerImageDialog
+        title: "Select Larger Image"
+        nameFilters: ["Image files (*.png *.jpg *.jpeg *.bmp)"]
+        currentFolder: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
+        onAccepted: {
+            extractLargerImagePath = selectedFile.toString()
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+    
+    FileDialog {
+        id: extractOutputDialog
+        title: "Save Extracted Image As"
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["PNG Image (*.png)"]
+        defaultSuffix: "png"
+        currentFolder: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
+        onAccepted: {
+            extractOutputImagePath = selectedFile.toString()
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+    
     // =========================================================================
     // TIMERS
     // =========================================================================
@@ -659,6 +930,12 @@ Rectangle {
         id: decodeStatusTimer
         interval: 8000
         onTriggered: decodeStatusMessage.text = ""
+    }
+    
+    Timer {
+        id: extractStatusTimer
+        interval: 8000
+        onTriggered: extractStatusMessage.text = ""
     }
     
     // =========================================================================
@@ -753,6 +1030,33 @@ Rectangle {
         
         // Use timer to defer decoding, allowing UI to update first
         decodeTimer.start();
+    }
+    
+    function performExtract() {
+        if (!extractLargerImagePath || !extractOutputImagePath) {
+            extractStatusMessage.text = "Please select a larger image and output location";
+            extractStatusMessage.isError = true;
+            extractStatusTimer.restart();
+            return;
+        }
+        
+        extractStatusMessage.text = ""
+        
+        // Call the extract function
+        var success = steganography.extractEncodedImage(
+            extractLargerImagePath,
+            extractOutputImagePath
+        );
+        
+        if (success) {
+            extractStatusMessage.text = "Encoded image extracted successfully!\nSaved to: " + extractOutputImagePath.split('/').pop();
+            extractStatusMessage.isError = false;
+            extractStatusTimer.restart();
+        } else {
+            extractStatusMessage.text = "Extraction failed: " + steganography.lastError;
+            extractStatusMessage.isError = true;
+            extractStatusTimer.restart();
+        }
     }
     
     // =========================================================================
