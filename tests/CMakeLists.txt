@@ -126,6 +126,70 @@ if(GTEST_FOUND)
 
     # Discover tests
     gtest_discover_tests(steganography_tests)
+    
+    # Extract Encoded Image Test (separate executable for focused testing)
+    add_executable(test_extract_encoded_image
+        unit/test_extract_encoded_image.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/steganography.cpp
+        ${CMAKE_SOURCE_DIR}/include/app/steganography.h
+    )
+    
+    set_target_properties(test_extract_encoded_image PROPERTIES
+        AUTOMOC ON
+    )
+
+    target_link_libraries(test_extract_encoded_image
+        PRIVATE
+            GTest::GTest
+            GTest::Main
+            Qt::Core
+            Qt::Gui
+            Qt::Qml
+            ${OpenCV_LIBS}
+            test_utils
+    )
+    
+    target_include_directories(test_extract_encoded_image
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/include/app
+    )
+
+    # Discover extract tests
+    gtest_discover_tests(test_extract_encoded_image)
+
+    # Full process end-to-end test
+    add_executable(test_full_process_e2e
+        test_full_process_e2e.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/steganography.cpp
+        ${CMAKE_SOURCE_DIR}/include/app/steganography.h
+    )
+    
+    set_target_properties(test_full_process_e2e PROPERTIES
+        AUTOMOC ON
+    )
+    
+    target_link_libraries(test_full_process_e2e
+        PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Qt::Core
+            Qt::Gui
+            Qt::Qml
+            opencv_core
+            opencv_imgcodecs
+            opencv_imgproc
+            opencv_videoio
+            test_utils
+    )
+    
+    target_include_directories(test_full_process_e2e
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/include/app
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    # Discover full process e2e tests
+    gtest_discover_tests(test_full_process_e2e)
 
     # Copy test data
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data
