@@ -267,6 +267,36 @@ Rectangle {
                             onClicked: performAutoEncode()
                         }
                         
+                        // Generate Wrapper Image Button (for testing)
+                        Button {
+                            text: "🖼️ Generate Test Wrapper Image"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 45
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            Layout.topMargin: 10
+                            enabled: !steganography.isProcessing
+                            font.pixelSize: 14
+                            
+                            background: Rectangle {
+                                color: parent.enabled ? 
+                                       (parent.pressed ? "#6C3483" : parent.hovered ? "#7D3C98" : "#8E44AD") : "#95A5A6"
+                                radius: 8
+                                border.color: parent.enabled ? "#7D3C98" : "#7F8C8D"
+                                border.width: 1
+                            }
+                            
+                            contentItem: Text {
+                                text: parent.text
+                                font: parent.font
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            
+                            onClicked: generateWrapperImageDialog.open()
+                        }
+                        
                         // Encode Status Message
                         Rectangle {
                             Layout.fillWidth: true
@@ -849,6 +879,22 @@ Rectangle {
         }
     }
     
+    FileDialog {
+        id: generateWrapperImageDialog
+        title: "Save Test Wrapper Image As"
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["PNG Image (*.png)"]
+        defaultSuffix: "png"
+        currentFolder: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
+        onAccepted: {
+            generateWrapperImage(selectedFile.toString())
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+    
     // Decode dialogs
     FileDialog {
         id: decodeImageDialog
@@ -1057,6 +1103,75 @@ Rectangle {
             extractStatusMessage.isError = true;
             extractStatusTimer.restart();
         }
+    }
+    
+    function generateWrapperImage(outputPath) {
+        // Generate a test wrapper image with gradient background
+        // Size: 800x600 pixels, similar to what's used in the test suite
+        
+        var canvas = Qt.createQmlObject('
+            import QtQuick 2.15
+            Item {
+                id: canvasItem
+                width: 800
+                height: 600
+                
+                Canvas {
+                    id: canvas
+                    anchors.fill: parent
+                    
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        
+                        // Create gradient background
+                        var gradient = ctx.createLinearGradient(0, 0, 0, height);
+                        gradient.addColorStop(0, "#3498DB");      // Blue
+                        gradient.addColorStop(0.5, "#5DADE2");    // Medium blue
+                        gradient.addColorStop(1, "#AED6F1");      // Light blue
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, width, height);
+                        
+                        // Add some decorative elements
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+                        ctx.lineWidth = 2;
+                        
+                        // Draw diagonal lines
+                        for (var i = -height; i < width; i += 50) {
+                            ctx.beginPath();
+                            ctx.moveTo(i, 0);
+                            ctx.lineTo(i + height, height);
+                            ctx.stroke();
+                        }
+                        
+                        // Add text overlay
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                        ctx.font = "48px Arial";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText("Test Wrapper Image", width/2, height/2);
+                        
+                        ctx.font = "24px Arial";
+                        ctx.fillText("800 x 600 pixels", width/2, height/2 + 50);
+                        
+                        // Save to file
+                        canvas.save(outputPath.toString().replace("file://", ""));
+                    }
+                    
+                    Component.onCompleted: {
+                        requestPaint();
+                    }
+                }
+            }
+        ', parent, "dynamicCanvas");
+        
+        // Show success message
+        encodeStatusMessage.text = "Test wrapper image generated successfully!\nSaved to: " + outputPath.split('/').pop() + "\nSize: 800x600 pixels\n\nYou can now:\n1. Encode a file (it will create a small encoded image)\n2. Use image editing software to embed the encoded image into this wrapper\n3. Test the Extract function to recover the encoded image";
+        encodeStatusMessage.isError = false;
+        encodeStatusTimer.restart();
+        
+        // Clean up
+        canvasItem.destroy(1000);
     }
     
     // =========================================================================

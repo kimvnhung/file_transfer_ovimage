@@ -191,6 +191,70 @@ if(GTEST_FOUND)
     # Discover full process e2e tests
     gtest_discover_tests(test_full_process_e2e)
 
+    # Fixed size format test (new 1000×1000 format with border headers)
+    add_executable(test_fixed_size_format
+        test_fixed_size_format.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/borderheader.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/framemanager.cpp
+        ${CMAKE_SOURCE_DIR}/include/app/borderheader.h
+        ${CMAKE_SOURCE_DIR}/include/app/framemanager.h
+    )
+    
+    set_target_properties(test_fixed_size_format PROPERTIES
+        AUTOMOC ON
+    )
+    
+    target_link_libraries(test_fixed_size_format
+        PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Qt::Core
+            Qt::Gui
+    )
+    
+    target_include_directories(test_fixed_size_format
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/include/app
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    # Discover fixed size format tests
+    gtest_discover_tests(test_fixed_size_format)
+
+    # Steganography V2 test (new 1000×1000 format end-to-end)
+    add_executable(test_steganography_v2
+        test_steganography_v2.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/steganography_v2.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/borderheader.cpp
+        ${CMAKE_SOURCE_DIR}/src/app/framemanager.cpp
+        ${CMAKE_SOURCE_DIR}/include/app/steganography_v2.h
+        ${CMAKE_SOURCE_DIR}/include/app/borderheader.h
+        ${CMAKE_SOURCE_DIR}/include/app/framemanager.h
+    )
+    
+    set_target_properties(test_steganography_v2 PROPERTIES
+        AUTOMOC ON
+    )
+    
+    target_link_libraries(test_steganography_v2
+        PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Qt::Core
+            Qt::Gui
+            Qt::Qml
+            test_utils
+    )
+    
+    target_include_directories(test_steganography_v2
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/include/app
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    # Discover steganography v2 tests
+    gtest_discover_tests(test_steganography_v2)
+
     # Copy test data
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data
          DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

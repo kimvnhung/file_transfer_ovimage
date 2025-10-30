@@ -82,6 +82,12 @@ private:
     QByteArray createHeader(const QString &filename, qint64 fileSize);
     DataHeader parseHeader(const QByteArray &data);
     
+    // Helper for adding detectable border to encoded images
+    void addDetectableBorder(QImage &image);
+    
+    // Helper for detecting border pattern in images
+    bool detectBorderPattern(const QImage &image, int x, int y, int &width, int &height);
+    
     // Helper for extracting encoded image from larger image
     QRect findEncodedRegion(const QImage &image);
     bool hasValidHeaderAt(const QImage &image, int startX, int startY, int &width, int &height);

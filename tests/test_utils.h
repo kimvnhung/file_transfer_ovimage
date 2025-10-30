@@ -68,6 +68,10 @@ public:
     QString getTempDir() const { return m_tempDir->path(); }
     QString createTempPath(const QString &filename) const;
     
+    // File I/O helpers
+    bool writeFile(const QString &filePath, const QString &content);
+    QString readFile(const QString &filePath);
+    
 private:
     QTemporaryDir *m_tempDir;
 };

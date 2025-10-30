@@ -236,6 +236,32 @@ QString TestEnvironment::createTempPath(const QString &filename) const
     return m_tempDir->filePath(filename);
 }
 
+bool TestEnvironment::writeFile(const QString &filePath, const QString &content)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+    
+    QTextStream out(&file);
+    out << content;
+    file.close();
+    return true;
+}
+
+QString TestEnvironment::readFile(const QString &filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return QString();
+    }
+    
+    QTextStream in(&file);
+    QString content = in.readAll();
+    file.close();
+    return content;
+}
+
 // ============================================================================
 // PerformanceTimer Implementation
 // ============================================================================

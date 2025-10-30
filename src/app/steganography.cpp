@@ -74,9 +74,9 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
         int width = static_cast<int>(std::sqrt(requiredPixels)) + 1;
         int height = (requiredPixels + width - 1) / width; // Round up
         
-        // Add 10% margin for safety
-        width = static_cast<int>(width * 1.1);
-        height = static_cast<int>(height * 1.1);
+        // Add 10% margin for safety, plus extra for border (6 pixels per dimension)
+        width = static_cast<int>(width * 1.1) + 6;
+        height = static_cast<int>(height * 1.1) + 6;
         
         // Create gradient image
         image = QImage(width, height, QImage::Format_RGB888);
@@ -135,6 +135,12 @@ bool Steganography::encodeFileInImage(const QString &imageUrl, const QString &fi
         emit encodeFailed(m_lastError);
         return false;
     }
+    
+    setProgress(70);
+    
+    // Add detectable border for extraction
+    // Create a 2-pixel border with alternating pattern for detection
+    addDetectableBorder(image);
     
     setProgress(80);
     
@@ -598,37 +604,192 @@ bool Steganography::writeFileData(const QString &filePath, const QByteArray &dat
     return true;
 }
 
+void Steganography::addDetectableBorder(QImage &image)
+{
+    int width = image.width();
+    int height = image.height();
+    
+    // Define border pattern colors - alternating distinctive pattern
+    // Top and bottom: Red-Green-Blue pattern
+    // Left and right: Blue-Yellow pattern
+    QRgb borderPatterns[] = {
+        qRgb(255, 0, 0),      // Red
+        qRgb(0, 255, 0),      // Green
+        qRgb(0, 0, 255),      // Blue
+        qRgb(255, 255, 0)     // Yellow
+    };
+    
+    int borderWidth = 3; // 3-pixel border for better detection
+    
+    // Draw top border
+    for (int y = 0; y < borderWidth && y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            image.setPixel(x, y, borderPatterns[(x / 5) % 4]);
+        }
+    }
+    
+    // Draw bottom border
+    for (int y = height - borderWidth; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            image.setPixel(x, y, borderPatterns[(x / 5) % 4]);
+        }
+    }
+    
+    // Draw left border
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < borderWidth && x < width; ++x) {
+            image.setPixel(x, y, borderPatterns[(y / 5) % 4]);
+        }
+    }
+    
+    // Draw right border
+    for (int y = 0; y < height; ++y) {
+        for (int x = width - borderWidth; x < width; ++x) {
+            image.setPixel(x, y, borderPatterns[(y / 5) % 4]);
+        }
+    }
+    
+    qDebug() << "Added detectable border to encoded image";
+}
+
+bool Steganography::detectBorderPattern(const QImage &image, int x, int y, int &width, int &height)
+{
+    // Check if there's a colored border pattern at this position
+    // The pattern should be alternating colors (Red, Green, Blue, Yellow)
+    
+    int imgWidth = image.width();
+    int imgHeight = image.height();
+    
+    // Need at least 10x10 region to detect
+    if (x + 10 > imgWidth || y + 10 > imgHeight) {
+        return false;
+    }
+    
+    // Check for distinctive colored pixels in top-left corner
+    QRgb topLeft = image.pixel(x, y);
+    int r = qRed(topLeft);
+    int g = qGreen(topLeft);
+    int b = qBlue(topLeft);
+    
+    // Check if this looks like one of our border colors
+    bool isRedish = (r > 200 && g < 50 && b < 50);
+    bool isGreenish = (r < 50 && g > 200 && b < 50);
+    bool isBlueish = (r < 50 && g < 50 && b > 200);
+    bool isYellowish = (r > 200 && g > 200 && b < 50);
+    
+    if (!isRedish && !isGreenish && !isBlueish && !isYellowish) {
+        return false;
+    }
+    
+    // Try to detect the extent of the border
+    // Scan horizontally to find where border pattern ends
+    int rightBorder = x;
+    for (int testX = x + 1; testX < imgWidth && testX < x + 2000; ++testX) {
+        QRgb pixel = image.pixel(testX, y);
+        int pr = qRed(pixel);
+        int pg = qGreen(pixel);
+        int pb = qBlue(pixel);
+        
+        bool isBorder = (pr > 200 && pg < 50 && pb < 50) ||
+                       (pr < 50 && pg > 200 && pb < 50) ||
+                       (pr < 50 && pg < 50 && pb > 200) ||
+                       (pr > 200 && pg > 200 && pb < 50);
+        
+        if (isBorder) {
+            rightBorder = testX;
+        } else {
+            // Check if we've found enough consecutive non-border pixels
+            if (testX - rightBorder > 5) {
+                break;
+            }
+        }
+    }
+    
+    // Scan vertically to find bottom border
+    int bottomBorder = y;
+    for (int testY = y + 1; testY < imgHeight && testY < y + 2000; ++testY) {
+        QRgb pixel = image.pixel(x, testY);
+        int pr = qRed(pixel);
+        int pg = qGreen(pixel);
+        int pb = qBlue(pixel);
+        
+        bool isBorder = (pr > 200 && pg < 50 && pb < 50) ||
+                       (pr < 50 && pg > 200 && pb < 50) ||
+                       (pr < 50 && pg < 50 && pb > 200) ||
+                       (pr > 200 && pg > 200 && pb < 50);
+        
+        if (isBorder) {
+            bottomBorder = testY;
+        } else {
+            if (testY - bottomBorder > 5) {
+                break;
+            }
+        }
+    }
+    
+    width = rightBorder - x + 1;
+    height = bottomBorder - y + 1;
+    
+    // Validate dimensions (should be reasonable size)
+    if (width >= 10 && height >= 10 && width <= 10000 && height <= 10000) {
+        qDebug() << "Detected border pattern at (" << x << "," << y << ") size:" << width << "x" << height;
+        return true;
+    }
+    
+    return false;
+}
+
 QRect Steganography::findEncodedRegion(const QImage &image)
 {
-    // Strategy: Scan the image in a grid pattern looking for valid steganography headers
-    // The encoded image should have our magic bytes "STEG" at the beginning
+    // Strategy: First try to detect the colored border pattern, then fall back to header detection
     
     int width = image.width();
     int height = image.height();
-    int stepSize = 10; // Check every 10 pixels to speed up search
+    int stepSize = 5; // Smaller step size for better border detection
     
-    // Try different possible sizes for the encoded region
-    // Start with common sizes and expand
-    QList<QSize> commonSizes = {
-        QSize(100, 100), QSize(200, 200), QSize(300, 300),
-        QSize(500, 500), QSize(1000, 1000),
-        QSize(512, 512), QSize(1024, 1024)
-    };
+    qDebug() << "Searching for encoded region in" << width << "x" << height << "image";
     
+    // PHASE 1: Try to detect border pattern (faster and more accurate)
+    for (int y = 0; y < height - 10; y += stepSize) {
+        for (int x = 0; x < width - 10; x += stepSize) {
+            int detectedWidth = 0, detectedHeight = 0;
+            
+            if (detectBorderPattern(image, x, y, detectedWidth, detectedHeight)) {
+                // Verify it's a reasonable encoded image size
+                if (detectedWidth > 0 && detectedHeight > 0 &&
+                    x + detectedWidth <= width && y + detectedHeight <= height) {
+                    qDebug() << "Found encoded region via border at (" << x << "," << y << ") size:" << detectedWidth << "x" << detectedHeight;
+                    return QRect(x, y, detectedWidth, detectedHeight);
+                }
+            }
+        }
+        
+        // Update progress during search
+        int searchProgress = 10 + (30 * y / height);
+        if (searchProgress != m_progress) {
+            setProgress(searchProgress);
+        }
+    }
+    
+    qDebug() << "Border pattern not found, trying header detection...";
+    
+    // PHASE 2: Fall back to header detection (original method)
     // First, try to detect if the entire image is the encoded image
     if (hasHiddenData(QString())) {
         // Check if starting from (0,0) works
         int detectedWidth = 0, detectedHeight = 0;
         if (hasValidHeaderAt(image, 0, 0, detectedWidth, detectedHeight)) {
             if (detectedWidth > 0 && detectedHeight > 0) {
+                qDebug() << "Found encoded region at (0,0) size:" << detectedWidth << "x" << detectedHeight;
                 return QRect(0, 0, detectedWidth, detectedHeight);
             }
         }
     }
     
-    // Scan the image looking for encoded regions
-    for (int y = 0; y < height - 50; y += stepSize) {
-        for (int x = 0; x < width - 50; x += stepSize) {
+    // Scan the image looking for encoded regions via header
+    int headerStepSize = 10; // Larger step size for header detection
+    for (int y = 0; y < height - 50; y += headerStepSize) {
+        for (int x = 0; x < width - 50; x += headerStepSize) {
             int detectedWidth = 0, detectedHeight = 0;
             
             // Check if there's a valid header at this position
@@ -636,18 +797,20 @@ QRect Steganography::findEncodedRegion(const QImage &image)
                 // Validate the detected dimensions
                 if (detectedWidth > 0 && detectedHeight > 0 &&
                     x + detectedWidth <= width && y + detectedHeight <= height) {
+                    qDebug() << "Found encoded region via header at (" << x << "," << y << ") size:" << detectedWidth << "x" << detectedHeight;
                     return QRect(x, y, detectedWidth, detectedHeight);
                 }
             }
         }
         
         // Update progress during search
-        int searchProgress = 10 + (40 * y / height);
+        int searchProgress = 40 + (40 * y / height);
         if (searchProgress != m_progress) {
             setProgress(searchProgress);
         }
     }
     
+    qDebug() << "No encoded region found";
     return QRect(); // Not found
 }
 
