@@ -13,14 +13,16 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Build Mode Configuration
-option(DESKTOP_MODE "Build for desktop with simplified UI" OFF)
-
-if(DESKTOP_MODE)
-    add_definitions(-DDESKTOP_MODE)
-    message(STATUS "Building in DESKTOP MODE - Simplified UI for testing")
+# Build Mode Configuration - Auto-detect based on platform
+if(ANDROID OR IOS)
+    set(MOBILE_MODE ON)
+    message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} - Building in MOBILE MODE")
+    message(STATUS "Full mobile UI with camera and permissions")
 else()
-    message(STATUS "Building in MOBILE MODE - Full mobile UI")
+    set(DESKTOP_MODE ON)
+    add_definitions(-DDESKTOP_MODE)
+    message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} - Building in DESKTOP MODE")
+    message(STATUS "Simplified UI for testing")
 endif()
 
 # ============================================================================

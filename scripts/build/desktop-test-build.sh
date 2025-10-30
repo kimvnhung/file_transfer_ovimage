@@ -47,13 +47,12 @@ echo ""
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-echo "[BUILD] Configuring with DESKTOP_MODE=ON..."
+echo "[BUILD] Configuring for Desktop (auto-detected)..."
 $CMAKE_COMMAND "$PROJECT_ROOT" \
     -DCMAKE_PREFIX_PATH="$QT_PATH" \
     -DCMAKE_BUILD_TYPE=Debug \
     -G Ninja \
-    -DCMAKE_MAKE_PROGRAM="$NINJA_COMMAND" \
-    -DDESKTOP_MODE=ON
+    -DCMAKE_MAKE_PROGRAM="$NINJA_COMMAND"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] CMake configuration failed"
