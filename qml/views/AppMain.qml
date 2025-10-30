@@ -64,6 +64,13 @@ ApplicationWindow {
                 }
                 
                 Button {
+                    text: "📦 File Transfer"
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 60
+                    onClicked: stackView.push(Qt.resolvedUrl("FileTransferPage.qml"))
+                }
+                
+                Button {
                     text: "Video Player"
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60

@@ -30,10 +30,15 @@ This project combines Qt's multimedia capabilities with OpenCV's computer vision
 - **Frame Processing** - OpenCV-powered frame manipulation
 - **High-Performance Rendering** - Optimized video display
 
-### File Transfer (Research Component)
-- Visual encoding/decoding algorithms (in development)
-- Error correction mechanisms
-- Progressive transfer with visual feedback
+### File Transfer via Steganography ⭐ NEW!
+- **LSB Steganography** - Hide files inside images using Least Significant Bit encoding
+- **Dual Mode UI** - Encode files on desktop, decode on mobile
+- **High Capacity** - Up to ~12 MB in 4K images
+- **Visual Transfer** - Display encoded image on screen, capture with camera to decode
+- **Format Preservation** - Maintains filename and file metadata
+- **Progress Tracking** - Real-time encoding/decoding progress
+- **Error Validation** - Magic number verification and capacity checking
+- 📖 [Full Documentation](docs/STEGANOGRAPHY.md) | [Quick Start](docs/QUICKSTART_FILE_TRANSFER.md)
 
 ## 🏗️ Project Structure
 
@@ -111,36 +116,63 @@ file_transfer_ovimage/
 
 ### Build Dependencies
 - **Qt 6.0+** with modules:
-  - Qt Core
-  - Qt GUI
-  - Qt Multimedia
-  - Qt QML
-  - Qt Quick
+  - Qt Core, GUI, Multimedia, QML, Quick
 - **OpenCV 4.0+**
+- **Tesseract 5.0+** (desktop only, optional)
 - **CMake 3.16+**
+- **Ninja** (build system)
 - **C++17 compatible compiler**
+
+### Android-Specific Requirements
+- **Android SDK API 33+**
+- **Android NDK 25.1+**
+- **Java JDK 17**
+- **Qt for Android 6.10+**
 
 ### Runtime Requirements
 - Camera device (for capture functionality)
 - Graphics card with OpenGL support
+- 2+ GB RAM recommended
 
-## 🚀 Building the Project
+## 🚀 Quick Start
 
-### Linux/macOS
+### Automated Setup (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/kimvnhung/file_transfer_ovimage.git
 cd file_transfer_ovimage
 
+# Run setup script (interactive)
+./scripts/setup/setup.sh
+
+# Or choose your environment directly:
+./scripts/setup/setup.sh desktop    # Desktop development
+./scripts/setup/setup.sh android    # Android development
+./scripts/setup/setup.sh both       # Both environments
+
+# Build and run
+./build.sh        # Desktop build
+./build.sh android arm64-v8a    # Android build
+```
+
+📖 See [Environment Setup Guide](docs/ENVIRONMENT_SETUP.md) for detailed instructions.
+
+## 🔨 Manual Building
+
+### Desktop (Linux/macOS)
+
+```bash
+# Install dependencies first (see Environment Setup Guide)
+
 # Create build directory
-mkdir build && cd build
+mkdir -p build/Desktop_Qt_6_10_0-Debug && cd build/Desktop_Qt_6_10_0-Debug
 
 # Configure with CMake
-cmake ..
+cmake ../.. -GNinja -DCMAKE_BUILD_TYPE=Debug -DDESKTOP_MODE=ON
 
 # Build
-cmake --build .
+cmake --build . --parallel
 
 # Run
 ./file_transfer_ovimage

@@ -96,10 +96,12 @@ endif()
 set(APP_SOURCES
     src/app/main.cpp
     src/app/tesseractocr.cpp
+    src/app/steganography.cpp
 )
 
 set(APP_HEADERS
     include/app/tesseractocr.h
+    include/app/steganography.h
 )
 
 set(OPENCV_PLAYER_SOURCES
@@ -178,13 +180,18 @@ set_target_properties(file_transfer_ovimage PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
-qt_add_ios_ffmpeg_libraries(file_transfer_ovimage)
+# iOS-specific FFmpeg libraries (only for iOS builds)
+if(IOS)
+    qt_add_ios_ffmpeg_libraries(file_transfer_ovimage)
+endif()
 
 # ============================================================================
-# Qt Policies
+# Qt Policies (Qt 6.5+)
 # ============================================================================
-qt_policy(SET QTP0001 NEW)
-qt_policy(SET QTP0004 NEW)
+if(COMMAND qt_policy)
+    qt_policy(SET QTP0001 NEW)
+    qt_policy(SET QTP0004 NEW)
+endif()
 
 # ============================================================================
 # OpenCV Player QML Module

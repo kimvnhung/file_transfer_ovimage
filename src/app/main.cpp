@@ -5,9 +5,12 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "tesseractocr.h"
+#include "steganography.h"
 
-#if QT_CONFIG(permissions)
+// QPermission is available from Qt 6.5+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   #include <QPermission>
+  #define HAS_QPERMISSION
 #endif
 
 int main(int argc, char *argv[])
@@ -17,10 +20,16 @@ int main(int argc, char *argv[])
     // Create TesseractOCR instance
     TesseractOCR tesseractOCR;
     
+    // Create Steganography instance
+    Steganography steganography;
+    
     QQmlApplicationEngine engine;
     
     // Expose TesseractOCR to QML
     engine.rootContext()->setContextProperty("tesseractOCR", &tesseractOCR);
+    
+    // Expose Steganography to QML
+    engine.rootContext()->setContextProperty("steganography", &steganography);
 
 #ifdef DESKTOP_MODE
     // Desktop Test Mode - Load simplified UI
@@ -46,7 +55,7 @@ int main(int argc, char *argv[])
         engine.load(viewSource);
     };
 
-#if QT_CONFIG(permissions)
+#ifdef HAS_QPERMISSION
     QCameraPermission cameraPermission;
     qApp->requestPermission(cameraPermission, [&setupView](const QPermission &permission) {
         if (permission.status() == Qt::PermissionStatus::Denied)
