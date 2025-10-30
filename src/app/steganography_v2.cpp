@@ -561,6 +561,19 @@ bool SteganographyV2::isValidFrame(const QString &imageUrl)
     return BorderHeader::hasValidHeader(image);
 }
 
+bool SteganographyV2::isValidFrameImage(const QImage &image)
+{
+    if (image.isNull()) {
+        return false;
+    }
+    
+    if (image.width() != IMAGE_SIZE || image.height() != IMAGE_SIZE) {
+        return false;
+    }
+    
+    return BorderHeader::hasValidHeader(image);
+}
+
 QString SteganographyV2::getFrameInfo(const QString &imageUrl)
 {
     QUrl url(imageUrl);

@@ -109,6 +109,11 @@ void OpenCV_VideoPlayer::extractFrame() {
     // }
 
     Q_EMIT updateRequired();
+    
+    // Emit frame ready signal with current frame as QImage
+    QImage frameImage((uchar *)_lastFrameMat.data, _lastFrameMat.cols, 
+                     _lastFrameMat.rows, _lastFrameMat.step, QImage::Format_RGB888);
+    Q_EMIT frameReady(frameImage.copy());  // copy() ensures the QImage owns its data
   }
 }
 
@@ -176,4 +181,18 @@ void OpenCV_VideoPlayer::run() {
       break;
     }
   }
+}
+
+QImage OpenCV_VideoPlayer::getCurrentFrameAsImage() {
+  _locker.ref();
+  if (_lastFrameMat.empty()) {
+    _locker.deref();
+    return QImage();
+  }
+  
+  QImage frameImage((uchar *)_lastFrameMat.data, _lastFrameMat.cols, 
+                   _lastFrameMat.rows, _lastFrameMat.step, QImage::Format_RGB888);
+  QImage result = frameImage.copy();  // Make a deep copy
+  _locker.deref();
+  return result;
 }

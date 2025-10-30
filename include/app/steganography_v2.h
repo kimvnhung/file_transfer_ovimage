@@ -93,6 +93,13 @@ public:
     Q_INVOKABLE bool isValidFrame(const QString &imageUrl);
     
     /**
+     * Check if QImage is a valid 1000×1000 encoded frame (direct image check)
+     * @param image QImage to check
+     * @return true if valid frame detected
+     */
+    Q_INVOKABLE bool isValidFrameImage(const QImage &image);
+    
+    /**
      * Get frame info without decoding
      * @param imageUrl Frame image URL
      * @return Frame information string

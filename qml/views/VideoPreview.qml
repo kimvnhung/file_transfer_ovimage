@@ -4,12 +4,23 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtCore
 import opencv_player
 
 Item {
     id: videoPreview
     property alias source : openCV_Player.videoUrl
     signal closed
+
+    // Extraction properties
+    property bool extractionMode: false
+    property int framesDetected: 0
+    property int framesExtracted: 0
+    property string lastDetectionTime: ""
+    
+    SteganographyV2 {
+        id: steganographyV2
+    }
 
     OpenCV_VideoPlayer {
         id: openCV_Player
@@ -24,6 +35,32 @@ Item {
         onVideoUrlChanged: {
             if (videoPreview.visible && videoUrl.toString() !== "") {
                 openCV_Player.setPlaybackState(OpenCV_VideoPlayer.PlayingState)
+            }
+        }
+        
+        // Real-time frame processing
+        onFrameReady: function(frame) {
+            if (extractionMode && frame.width > 0 && frame.height > 0) {
+                // Check if this frame contains an encoded image
+                if (steganographyV2.isValidFrameImage(frame)) {
+                    framesDetected++
+                    lastDetectionTime = Qt.formatTime(new Date(), "hh:mm:ss")
+                    
+                    // Show detection overlay
+                    detectionOverlay.visible = true
+                    detectionOverlay.opacity = 1.0
+                    flashAnimation.start()
+                    
+                    // Save the detected frame
+                    var outputDir = StandardPaths.writableLocation(StandardPaths.DownloadLocation).toString().replace("file://", "")
+                    var timestamp = Date.now()
+                    var outputPath = outputDir + "/detected_frame_" + timestamp + ".png"
+                    
+                    if (frame.save(outputPath, "PNG")) {
+                        framesExtracted++
+                        console.log("Saved detected frame to:", outputPath)
+                    }
+                }
             }
         }
     }
@@ -50,6 +87,49 @@ Item {
                 OpenCV_Player_ViewPort {
                     id: openCV_ViewPort
                     anchors.fill: parent
+                }
+                
+                // Detection overlay
+                Rectangle {
+                    id: detectionOverlay
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.color: "#2ECC71"
+                    border.width: 8
+                    radius: 10
+                    visible: false
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "✓ VALID FRAME DETECTED!"
+                        color: "#2ECC71"
+                        font.pixelSize: 24
+                        font.bold: true
+                        style: Text.Outline
+                        styleColor: "black"
+                    }
+                    
+                    SequentialAnimation {
+                        id: flashAnimation
+                        loops: 3
+                        PropertyAnimation {
+                            target: detectionOverlay
+                            property: "opacity"
+                            from: 1.0
+                            to: 0.3
+                            duration: 200
+                        }
+                        PropertyAnimation {
+                            target: detectionOverlay
+                            property: "opacity"
+                            from: 0.3
+                            to: 1.0
+                            duration: 200
+                        }
+                        onStopped: {
+                            detectionOverlay.visible = false
+                        }
+                    }
                 }
             }
 
@@ -123,8 +203,45 @@ Item {
                         color: "white"
                         font.pixelSize: 12
                     }
+                    
+                    // Extraction status
+                    Text {
+                        visible: extractionMode
+                        text: "✓ Detected: " + framesDetected + " | Saved: " + framesExtracted
+                        color: "#2ECC71"
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
 
                     Item { Layout.fillWidth: true }
+                    
+                    // Extraction mode toggle
+                    Rectangle {
+                        width: 100
+                        height: 30
+                        radius: 5
+                        color: extractionMode ? "#2ECC71" : "#333333"
+                        border.color: extractionMode ? "#27AE60" : "#555555"
+                        border.width: 2
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: extractionMode ? "🔍 Detecting..." : "🔍 Detect"
+                            color: "white"
+                            font.pixelSize: 11
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                extractionMode = !extractionMode
+                                if (extractionMode) {
+                                    framesDetected = 0
+                                    framesExtracted = 0
+                                }
+                            }
+                        }
+                    }
 
                     // Previous frame button
                     Rectangle {

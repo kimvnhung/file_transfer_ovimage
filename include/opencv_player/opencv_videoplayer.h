@@ -39,6 +39,9 @@ public Q_SLOTS:
     void setVideoUrl(QUrl newVideoUrl);
     void setFrameNumber(int newFrameNumber);
     void setPlaybackState(OpenCV_VideoPlayer::PlaybackState newPlaybackState);
+    
+    // Get current frame as QImage for processing
+    Q_INVOKABLE QImage getCurrentFrameAsImage();
 
 private:
     void paintFrame(QPainter *painter, const cv::Mat &mat, const QSize &size);
@@ -69,6 +72,7 @@ Q_SIGNALS:
     void playbackStateChanged(PlaybackState playbackState);
     void inputResulationChanged(QSize inputResulation);
     void videoFinished();
+    void frameReady(const QImage &frame);  // Emitted when new frame is ready
 };
 
 #endif // OPENCV_VIDEOPLAYER_H
